@@ -54,6 +54,8 @@ namespace opengl_gui
         bool isVisible = true;
         double styleChangeTime = 0.0;
 
+        Style elementStyle;
+
     protected:
         Style prevStyle;
         Layout prevLayout;

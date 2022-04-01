@@ -67,9 +67,11 @@ void opengl_gui::Renderer::resizeRecursive(Element *e, const Layout *parentLayou
         for (auto &c : e->classList)
             if (c == s.name)
             {
-                elementStyle.add(s, 1.0, nullptr);
+                elementStyle.add(s, 100.0, nullptr);
                 break;
             }
+
+    elementStyle.add(e->elementStyle, 100.0, nullptr);
 
     if (elementStyle.miscProperties.at("visibility").value == "hidden")
     {
@@ -102,6 +104,8 @@ void opengl_gui::Renderer::updateStyleRecursive(Element *e, const Layout *parent
                     elementStyle.add(s, window->getCurrentTime() - e->styleChangeTime, &isTransitionActive);
                     break;
                 }
+
+        elementStyle.add(e->elementStyle, window->getCurrentTime() - e->styleChangeTime, &isTransitionActive);
 
         elementLayout = elementStyle.getLayout(parentLayout, &windowSize);
     }

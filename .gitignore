@@ -2,7 +2,6 @@ audio_visualizer.code-workspace
 .DS_Store
 .vscode/**
 makefile
-audio_visualizer
 extra/**
 build/**
 assets/**
