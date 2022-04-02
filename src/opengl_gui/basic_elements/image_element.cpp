@@ -43,3 +43,8 @@ void opengl_gui::ImageElement::resizeMesh(const Style &style, const Layout &layo
 
     mesh.applyVertexChange();
 }
+
+void opengl_gui::ImageElement::setImage(Texture *image)
+{
+    mesh.textures[0] = image;
+}

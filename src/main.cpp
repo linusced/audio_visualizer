@@ -59,6 +59,15 @@ void consoleInputThreadFunc(bool *stop, audio_visualizer::App *app)
                 float fMultiplier = std::stof(multiplier);
                 app->setMultiplier(fMultiplier);
             }
+            else if (consoleInput[0] == 'i')
+            {
+                std::string index = consoleInput.substr(1);
+                if (index[0] < '0' || index[0] > '9')
+                    index.erase(index.begin());
+
+                int iIndex = std::stof(index) - 1;
+                app->setImage(iIndex);
+            }
             else
                 throw "";
         }
@@ -83,7 +92,7 @@ int main()
 
     bool stop = false;
 
-    audio_visualizer::App app(&stop, cssCode, filePath("Arial.ttf"), filePath("bg-image.jpg"), &window);
+    audio_visualizer::App app(&stop, cssCode, filePath("Arial.ttf"), {filePath("images/beach-sunset.jpg"), filePath("images/city-night.jpg"), filePath("images/club.jpg"), filePath("images/festival.jpg"), filePath("images/synthwave.jpg")}, &window);
 
     std::thread consoleInputThread(consoleInputThreadFunc, &stop, &app);
 

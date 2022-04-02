@@ -11,6 +11,8 @@ namespace opengl_gui
         ImageElement(Texture *imageTexture, std::string className);
 
         void resizeMesh(const Style &style, const Layout &layout, const glm::ivec2 &windowSize) override;
+
+        void setImage(Texture *image);
     };
 }
 

@@ -2,32 +2,27 @@
 
 const double audio_visualizer::App::COLOR_TRANSITION_DURATION = 4.0;
 
-audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFilePath, std::string bgImageFilePath, opengl_gui::Window *window)
+audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFilePath, std::vector<std::string> bgImageFilePaths, opengl_gui::Window *window)
     : opengl_gui::DrawLoop(window)
 {
     this->stop = stop;
+
+    for (auto &str : bgImageFilePaths)
+    {
+        opengl_gui::TextureData bgImageData(str);
+        textures.push_back(new opengl_gui::Texture(bgImageData.bytes, bgImageData.width, bgImageData.height, bgImageData.format));
+    }
 
     waveformTextureWidth = opengl_gui::Window::getMonitorWidth();
     waveformTextureHeight = opengl_gui::Window::getMonitorHeight() * 0.3f;
     waveformTextureBytes.resize((waveformTextureWidth * waveformTextureHeight) * 4);
 
-    opengl_gui::TextureData bgImageData(bgImageFilePath);
-
-    textures.push_back(new opengl_gui::Texture(bgImageData.bytes, bgImageData.width, bgImageData.height, bgImageData.format));
     textures.push_back(new opengl_gui::Texture(waveformTextureBytes.data(), waveformTextureWidth, waveformTextureHeight, GL_RGBA));
 
     guiRenderer = new opengl_gui::Renderer(cssCode, window);
 
-    imageElements.push_back(new opengl_gui::ImageElement(textures[0], "bg-image"));
+    imageElements.push_back(new opengl_gui::ImageElement(textures[0], "fullscreen"));
     guiRenderer->addElement(imageElements[0]);
-
-    bgTranslateX = &imageElements[0]->elementStyle.sizeProperties["translate-x"];
-    bgTranslateX->isSet = true;
-    bgTranslateX->unit = opengl_gui::Style::PERCENTAGE;
-
-    bgTranslateY = &imageElements[0]->elementStyle.sizeProperties["translate-y"];
-    bgTranslateY->isSet = true;
-    bgTranslateY->unit = opengl_gui::Style::PERCENTAGE;
 
     elements.push_back(new opengl_gui::Element("fullscreen"));
     guiRenderer->addElement(elements[0]);
@@ -35,7 +30,7 @@ audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFile
     bgOverlayColor = &elements[0]->elementStyle.colorProperties["background-color"];
     bgOverlayColor->isSet = true;
 
-    imageElements.push_back(new opengl_gui::ImageElement(textures[1], "waveform"));
+    imageElements.push_back(new opengl_gui::ImageElement(textures.back(), "waveform"));
     guiRenderer->addElement(imageElements[1]);
 
     fonts.push_back(new opengl_gui::Font(fontFilePath));
@@ -70,7 +65,7 @@ void audio_visualizer::App::loop()
         glm::vec3 color = glm::rgbColor(currentHSV);
 
         audio_visualizer::drawWaveform(waveformTextureBytes, waveformTextureWidth, waveformTextureHeight, color, input.getAudioData());
-        textures[1]->update(waveformTextureBytes.data(), waveformTextureWidth, waveformTextureHeight, GL_RGBA);
+        textures.back()->update(waveformTextureBytes.data(), waveformTextureWidth, waveformTextureHeight, GL_RGBA);
 
         textColor->value = glm::vec4(color, 1.0f);
         textElements[0]->styleChange = true;
@@ -88,13 +83,8 @@ void audio_visualizer::App::loop()
 
         prevAudioPeak = fAudioPeak;
 
-        bgOverlayColor->value = glm::vec4(color * 0.1f, 1.0f - fAudioPeak * 0.5f);
+        bgOverlayColor->value = glm::vec4(color * 0.1f, (1.0f - fAudioPeak * 0.5f) - 0.5f);
         elements[0]->styleChange = true;
-
-        float translateValue = window->getCurrentTime() * 0.3f;
-        imageElements[0]->styleChange = true;
-        bgTranslateX->value = -(sinf(translateValue) * 0.5f + 0.5f) * 10.0f;
-        bgTranslateY->value = -(cosf(translateValue) * 0.5f + 0.5f) * 10.0f;
 
         guiRenderer->update();
 
@@ -119,4 +109,9 @@ void audio_visualizer::App::setText(std::string _newText)
 void audio_visualizer::App::setMultiplier(float _newMultiplier)
 {
     input.setMultiplier(_newMultiplier);
+}
+void audio_visualizer::App::setImage(int imageIndex)
+{
+    if (imageIndex >= 0 && imageIndex < textures.size() - 1)
+        imageElements[0]->setImage(textures[imageIndex]);
 }

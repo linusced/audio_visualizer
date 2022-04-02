@@ -11,13 +11,14 @@ namespace audio_visualizer
     class App : public opengl_gui::DrawLoop
     {
     public:
-        App(bool *stop, std::string cssCode, std::string fontFilePath, std::string bgImageFilePath, opengl_gui::Window *window);
+        App(bool *stop, std::string cssCode, std::string fontFilePath, std::vector<std::string> bgImageFilePaths, opengl_gui::Window *window);
 
         void loop() override;
 
         void setHSV(glm::vec3 _newHSV);
         void setText(std::string _newText);
         void setMultiplier(float _newMultiplier);
+        void setImage(int imageIndex);
 
     private:
         static const double COLOR_TRANSITION_DURATION;
@@ -35,8 +36,6 @@ namespace audio_visualizer
 
         opengl_gui::Style::COLOR *textColor = nullptr;
         opengl_gui::Style::COLOR *bgOverlayColor = nullptr;
-        opengl_gui::Style::SIZE *bgTranslateX = nullptr;
-        opengl_gui::Style::SIZE *bgTranslateY = nullptr;
     };
 }
 
