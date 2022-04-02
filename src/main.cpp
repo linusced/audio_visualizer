@@ -11,7 +11,7 @@ void consoleInputThreadFunc(bool *stop, audio_visualizer::App *app)
 
         try
         {
-            if (consoleInput == "stop" || consoleInput == "quit" || consoleInput == "close" || consoleInput == "q" || consoleInput == "c")
+            if (consoleInput == "q" || consoleInput == "c")
             {
                 *stop = true;
             }
@@ -39,9 +39,9 @@ void consoleInputThreadFunc(bool *stop, audio_visualizer::App *app)
 
                 app->setHSV(hsv);
             }
-            else if (consoleInput.substr(0, 5) == "text ")
+            else if (consoleInput.substr(0, 2) == "t ")
             {
-                std::string text = consoleInput.substr(5);
+                std::string text = consoleInput.substr(2);
                 size_t newLinePos = text.find("\\n");
                 if (newLinePos != std::string::npos)
                 {
@@ -49,6 +49,15 @@ void consoleInputThreadFunc(bool *stop, audio_visualizer::App *app)
                     text.erase(text.begin() + newLinePos + 1);
                 }
                 app->setText(text);
+            }
+            else if (consoleInput[0] == 'm')
+            {
+                std::string multiplier = consoleInput.substr(1);
+                if (multiplier[0] < '0' || multiplier[0] > '9')
+                    multiplier.erase(multiplier.begin());
+
+                float fMultiplier = std::stof(multiplier);
+                app->setMultiplier(fMultiplier);
             }
             else
                 throw "";
@@ -80,9 +89,10 @@ int main()
 
     app.loop();
 
-    consoleInputThread.join();
-
     app.terminate();
+
+    if (consoleInputThread.joinable())
+        consoleInputThread.join();
 
     opengl_gui::terminate();
     return 0;

@@ -18,8 +18,16 @@ audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFile
 
     guiRenderer = new opengl_gui::Renderer(cssCode, window);
 
-    imageElements.push_back(new opengl_gui::ImageElement(textures[0], "fullscreen"));
+    imageElements.push_back(new opengl_gui::ImageElement(textures[0], "bg-image"));
     guiRenderer->addElement(imageElements[0]);
+
+    bgTranslateX = &imageElements[0]->elementStyle.sizeProperties["translate-x"];
+    bgTranslateX->isSet = true;
+    bgTranslateX->unit = opengl_gui::Style::PERCENTAGE;
+
+    bgTranslateY = &imageElements[0]->elementStyle.sizeProperties["translate-y"];
+    bgTranslateY->isSet = true;
+    bgTranslateY->unit = opengl_gui::Style::PERCENTAGE;
 
     elements.push_back(new opengl_gui::Element("fullscreen"));
     guiRenderer->addElement(elements[0]);
@@ -80,8 +88,13 @@ void audio_visualizer::App::loop()
 
         prevAudioPeak = fAudioPeak;
 
-        bgOverlayColor->value.a = 1.0f - fAudioPeak * 0.5f;
+        bgOverlayColor->value = glm::vec4(color * 0.1f, 1.0f - fAudioPeak * 0.5f);
         elements[0]->styleChange = true;
+
+        float translateValue = window->getCurrentTime() * 0.3f;
+        imageElements[0]->styleChange = true;
+        bgTranslateX->value = -(sinf(translateValue) * 0.5f + 0.5f) * 10.0f;
+        bgTranslateY->value = -(cosf(translateValue) * 0.5f + 0.5f) * 10.0f;
 
         guiRenderer->update();
 
@@ -102,4 +115,8 @@ void audio_visualizer::App::setHSV(glm::vec3 _newHSV)
 void audio_visualizer::App::setText(std::string _newText)
 {
     textElements[0]->setText(_newText);
+}
+void audio_visualizer::App::setMultiplier(float _newMultiplier)
+{
+    input.setMultiplier(_newMultiplier);
 }

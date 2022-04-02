@@ -17,6 +17,7 @@ namespace audio_visualizer
 
         void setHSV(glm::vec3 _newHSV);
         void setText(std::string _newText);
+        void setMultiplier(float _newMultiplier);
 
     private:
         static const double COLOR_TRANSITION_DURATION;
@@ -34,6 +35,8 @@ namespace audio_visualizer
 
         opengl_gui::Style::COLOR *textColor = nullptr;
         opengl_gui::Style::COLOR *bgOverlayColor = nullptr;
+        opengl_gui::Style::SIZE *bgTranslateX = nullptr;
+        opengl_gui::Style::SIZE *bgTranslateY = nullptr;
     };
 }
 

@@ -21,6 +21,8 @@ namespace audio_visualizer
 
         const std::vector<int16_t> &getAudioData();
 
+        void setMultiplier(float _newMultiplier);
+
     private:
         static const unsigned int SAMPLE_RATE, BUFFER_SIZE;
 
@@ -28,6 +30,8 @@ namespace audio_visualizer
 
         ALCdevice *device = nullptr;
         std::vector<int16_t> bufferData;
+
+        float multiplier = 1.0f;
     };
 }
 
