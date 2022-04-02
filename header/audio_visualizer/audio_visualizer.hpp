@@ -4,36 +4,36 @@
 #include "../opengl_gui/opengl_gui.hpp"
 #include "draw_waveform.hpp"
 #include "audio_input.hpp"
-
 #include <glm/gtx/color_space.hpp>
-#include <fftw3.h>
 
 namespace audio_visualizer
 {
     class App : public opengl_gui::DrawLoop
     {
     public:
-        App(std::string cssCode, opengl_gui::Window *window);
-
-        void terminate() override;
+        App(bool *stop, std::string cssCode, std::string fontFilePath, std::string bgImageFilePath, opengl_gui::Window *window);
 
         void loop() override;
 
-    private:
-        std::vector<unsigned char> waveformTextureBytes;
-        int waveformTextureWidth, waveformTextureHeight;
-        opengl_gui::Texture *waveformTexture = nullptr;
+        void setHSV(glm::vec3 _newHSV);
+        void setText(std::string _newText);
 
+    private:
+        static const double COLOR_TRANSITION_DURATION;
+
+        bool *stop = nullptr;
         AudioInput input;
 
-        std::vector<double> timeDomain, frequencyDomain;
-        fftw_complex *frequencyComplex = nullptr;
-        fftw_plan frequencyPlan;
+        std::vector<unsigned char> waveformTextureBytes;
+        int waveformTextureWidth, waveformTextureHeight;
 
-        std::vector<opengl_gui::Element *> lights;
-        std::vector<glm::vec4 *> lightColors;
+        glm::vec3 HSV = glm::vec3(0.0f, 0.0f, 1.0f), prevHSV;
+        double colorTransitionStartTime = -100.0;
 
-        double getFrequencyArrayAverage(int startIndex, int size, int *nextStartIndex);
+        float prevAudioPeak = 0.0f;
+
+        opengl_gui::Style::COLOR *textColor = nullptr;
+        opengl_gui::Style::COLOR *bgOverlayColor = nullptr;
     };
 }
 

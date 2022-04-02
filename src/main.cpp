@@ -1,6 +1,66 @@
 #include "../header/audio_visualizer/audio_visualizer.hpp"
 #include "../header/files.hpp"
 
+void consoleInputThreadFunc(bool *stop, audio_visualizer::App *app)
+{
+    std::string consoleInput;
+
+    while (!*stop)
+    {
+        std::getline(std::cin, consoleInput);
+
+        try
+        {
+            if (consoleInput == "stop" || consoleInput == "quit" || consoleInput == "close" || consoleInput == "q" || consoleInput == "c")
+            {
+                *stop = true;
+            }
+            else if (consoleInput.substr(0, 3) == "hsv")
+            {
+                std::string hsvStr = consoleInput.substr(3);
+                glm::vec3 hsv;
+
+                if (hsvStr[0] < '0' || hsvStr[0] > '9')
+                    hsvStr.erase(hsvStr.begin());
+
+                std::string numChars = "0123456789.";
+                size_t begin = 0, size = -1;
+                for (int i = 0; i < 3; i++)
+                {
+                    begin += size + 1;
+                    begin = hsvStr.find_first_of(numChars, begin);
+                    size = hsvStr.find_first_not_of(numChars, begin);
+                    if (size == std::string::npos && i < 2)
+                        throw "";
+                    size -= begin;
+
+                    hsv[i] = std::stof(hsvStr.substr(begin, size));
+                }
+
+                app->setHSV(hsv);
+            }
+            else if (consoleInput.substr(0, 5) == "text ")
+            {
+                std::string text = consoleInput.substr(5);
+                size_t newLinePos = text.find("\\n");
+                if (newLinePos != std::string::npos)
+                {
+                    text[newLinePos] = '\n';
+                    text.erase(text.begin() + newLinePos + 1);
+                }
+                app->setText(text);
+            }
+            else
+                throw "";
+        }
+        catch (...)
+        {
+            std::cout << "\033[1;31mInvalid Input\033[0m\n";
+            continue;
+        }
+    }
+}
+
 int main()
 {
     opengl_gui::init();
@@ -12,8 +72,16 @@ int main()
 
     std::string cssCode = opengl_gui::textFileData(filePath("style.css"));
 
-    audio_visualizer::App app(cssCode, &window);
+    bool stop = false;
+
+    audio_visualizer::App app(&stop, cssCode, filePath("Arial.ttf"), filePath("bg-image.jpg"), &window);
+
+    std::thread consoleInputThread(consoleInputThreadFunc, &stop, &app);
+
     app.loop();
+
+    consoleInputThread.join();
+
     app.terminate();
 
     opengl_gui::terminate();

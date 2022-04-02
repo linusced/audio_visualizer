@@ -1,55 +1,43 @@
 #include "../../header/audio_visualizer/audio_visualizer.hpp"
 
-audio_visualizer::App::App(std::string cssCode, opengl_gui::Window *window)
+const double audio_visualizer::App::COLOR_TRANSITION_DURATION = 4.0;
+
+audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFilePath, std::string bgImageFilePath, opengl_gui::Window *window)
     : opengl_gui::DrawLoop(window)
 {
+    this->stop = stop;
+
     waveformTextureWidth = opengl_gui::Window::getMonitorWidth();
-    waveformTextureHeight = opengl_gui::Window::getMonitorHeight();
+    waveformTextureHeight = opengl_gui::Window::getMonitorHeight() * 0.3f;
     waveformTextureBytes.resize((waveformTextureWidth * waveformTextureHeight) * 4);
 
-    waveformTexture = new opengl_gui::Texture(waveformTextureBytes.data(), waveformTextureWidth, waveformTextureHeight, GL_RGBA);
-    textures.push_back(waveformTexture);
+    opengl_gui::TextureData bgImageData(bgImageFilePath);
+
+    textures.push_back(new opengl_gui::Texture(bgImageData.bytes, bgImageData.width, bgImageData.height, bgImageData.format));
+    textures.push_back(new opengl_gui::Texture(waveformTextureBytes.data(), waveformTextureWidth, waveformTextureHeight, GL_RGBA));
 
     guiRenderer = new opengl_gui::Renderer(cssCode, window);
 
-    for (int i = 0; i < 12; i++)
-    {
-        lights.push_back(new opengl_gui::Element("light light-" + std::to_string(i)));
-        lights.back()->elementStyle.colorProperties["background-color"].isSet = true;
-        lightColors.push_back(&lights.back()->elementStyle.colorProperties["background-color"].value);
-        elements.push_back(lights.back());
-        guiRenderer->addElement(lights.back());
-    }
+    imageElements.push_back(new opengl_gui::ImageElement(textures[0], "fullscreen"));
+    guiRenderer->addElement(imageElements[0]);
 
-    elements.push_back(new opengl_gui::ImageElement(textures.back(), "waveform"));
-    guiRenderer->addElement(elements.back());
-}
+    elements.push_back(new opengl_gui::Element("fullscreen"));
+    guiRenderer->addElement(elements[0]);
 
-void audio_visualizer::App::terminate()
-{
-    if (guiRenderer)
-        delete guiRenderer;
+    bgOverlayColor = &elements[0]->elementStyle.colorProperties["background-color"];
+    bgOverlayColor->isSet = true;
 
-    for (auto &i : fonts)
-        delete i;
-    for (auto &i : textures)
-        delete i;
+    imageElements.push_back(new opengl_gui::ImageElement(textures[1], "waveform"));
+    guiRenderer->addElement(imageElements[1]);
 
-    for (auto &i : elements)
-        delete i;
-    for (auto &i : buttonElements)
-        delete i;
-    for (auto &i : imageElements)
-        delete i;
-    for (auto &i : sliderElements)
-        delete i;
-    for (auto &i : textElements)
-        delete i;
-    for (auto &i : textInputElements)
-        delete i;
+    fonts.push_back(new opengl_gui::Font(fontFilePath));
 
-    if (frequencyComplex)
-        fftw_free(frequencyComplex);
+    textElements.push_back(new opengl_gui::TextElement(fonts[0], "", "text"));
+    guiRenderer->addElement(textElements[0]);
+
+    textColor = &textElements[0]->elementStyle.colorProperties["color"];
+    textColor->isSet = true;
+    textColor->value = glm::vec4(glm::rgbColor(HSV), 1.0f);
 }
 
 void audio_visualizer::App::loop()
@@ -57,7 +45,7 @@ void audio_visualizer::App::loop()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
 
-    while (!window->shouldClose())
+    while (!*stop)
     {
         window->update();
         if (window->hasResized())
@@ -65,60 +53,35 @@ void audio_visualizer::App::loop()
 
         input.update();
 
-        if (glfwGetKey(*window, GLFW_KEY_ENTER))
-            glfwSetInputMode(*window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        else if (glfwGetKey(*window, GLFW_KEY_ESCAPE))
-            glfwSetInputMode(*window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        glm::vec3 currentHSV = HSV;
+        double colorTransitionCurrentTime = window->getCurrentTime() - colorTransitionStartTime;
 
-        glm::vec3 color = glm::rgbColor(glm::vec3((int)(window->getCurrentTime() * 5.0) % 360, 1.0f, 1.0f));
+        if (colorTransitionCurrentTime < COLOR_TRANSITION_DURATION)
+            currentHSV = glm::mix(prevHSV, HSV, colorTransitionCurrentTime / COLOR_TRANSITION_DURATION);
+
+        glm::vec3 color = glm::rgbColor(currentHSV);
 
         audio_visualizer::drawWaveform(waveformTextureBytes, waveformTextureWidth, waveformTextureHeight, color, input.getAudioData());
-        waveformTexture->update(waveformTextureBytes.data(), waveformTextureWidth, waveformTextureHeight, GL_RGBA);
+        textures[1]->update(waveformTextureBytes.data(), waveformTextureWidth, waveformTextureHeight, GL_RGBA);
 
-        if (timeDomain.size() != input.getAudioData().size())
-            timeDomain.resize(input.getAudioData().size());
+        textColor->value = glm::vec4(color, 1.0f);
+        textElements[0]->styleChange = true;
 
-        for (size_t i = 0; i < input.getAudioData().size(); i++)
-            timeDomain[i] = input.getAudioData()[i] / (double)(pow(2, 16) / 2 - 1);
+        int audioPeak = 0;
+        for (int i = 0; i < input.getAudioData().size(); i++)
+            if (abs(input.getAudioData()[i]) > audioPeak)
+                audioPeak = abs(input.getAudioData()[i]);
 
-        if (frequencyDomain.size() != timeDomain.size() / 2 + 1)
-        {
-            frequencyDomain.resize(timeDomain.size() / 2 + 1);
+        float fAudioPeak = audioPeak / (powf(2, 16) / 2.0f - 1.0f);
+        if (fAudioPeak - prevAudioPeak > 0.4f)
+            fAudioPeak = prevAudioPeak + 0.4f;
+        else if (fAudioPeak - prevAudioPeak < -0.05f)
+            fAudioPeak = prevAudioPeak - 0.05f;
 
-            if (frequencyComplex)
-                fftw_free(frequencyComplex);
-            frequencyComplex = (fftw_complex *)calloc(frequencyDomain.size(), sizeof(fftw_complex));
-        }
+        prevAudioPeak = fAudioPeak;
 
-        frequencyPlan = fftw_plan_dft_r2c_1d(timeDomain.size(), timeDomain.data(), frequencyComplex, FFTW_ESTIMATE);
-        fftw_execute(frequencyPlan);
-
-        for (size_t i = 0; i < frequencyDomain.size(); i++)
-            frequencyDomain[i] = 20.0 * log10(sqrt(pow(frequencyComplex[i][0], 2) + pow(frequencyComplex[i][1], 2)));
-
-        int startIndex = 1;
-        double value = getFrequencyArrayAverage(startIndex, (frequencyDomain.size() - 1) * (100.0f / 20000.0f), &startIndex);
-        *lightColors[8] = *lightColors[9] = glm::vec4(color, value / 30.0f);
-
-        value = getFrequencyArrayAverage(startIndex, (frequencyDomain.size() - 1) * (200.0f / 20000.0f), &startIndex);
-        *lightColors[7] = *lightColors[10] = glm::vec4(color, value / 30.0f);
-
-        value = getFrequencyArrayAverage(startIndex, (frequencyDomain.size() - 1) * (200.0f / 20000.0f), &startIndex);
-        *lightColors[6] = *lightColors[11] = glm::vec4(color, value / 30.0f);
-
-        value = getFrequencyArrayAverage(startIndex, (frequencyDomain.size() - 1) * (1000.0f / 20000.0f), &startIndex);
-        *lightColors[0] = *lightColors[5] = glm::vec4(color, value / 30.0f);
-
-        value = getFrequencyArrayAverage(startIndex, (frequencyDomain.size() - 1) * (2000.0f / 20000.0f), &startIndex);
-        *lightColors[1] = *lightColors[4] = glm::vec4(color, value / 30.0f);
-
-        value = getFrequencyArrayAverage(startIndex, (frequencyDomain.size() - 1) * (2000.0f / 20000.0f), &startIndex);
-        *lightColors[2] = *lightColors[3] = glm::vec4(color, value / 30.0f);
-
-        for (auto &l : lights)
-            l->styleChange = true;
-
-        fftw_destroy_plan(frequencyPlan);
+        bgOverlayColor->value.a = 1.0f - fAudioPeak * 0.5f;
+        elements[0]->styleChange = true;
 
         guiRenderer->update();
 
@@ -130,16 +93,13 @@ void audio_visualizer::App::loop()
     }
 }
 
-double audio_visualizer::App::getFrequencyArrayAverage(int startIndex, int size, int *nextStartIndex)
+void audio_visualizer::App::setHSV(glm::vec3 _newHSV)
 {
-    double average = 0.0;
-
-    for (int i = startIndex; i < startIndex + size; i++)
-        average += frequencyDomain[i];
-
-    average /= size;
-
-    *nextStartIndex = startIndex + size;
-
-    return average;
+    prevHSV = HSV;
+    HSV = _newHSV;
+    colorTransitionStartTime = window->getCurrentTime();
+}
+void audio_visualizer::App::setText(std::string _newText)
+{
+    textElements[0]->setText(_newText);
 }

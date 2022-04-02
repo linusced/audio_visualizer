@@ -63,7 +63,7 @@ void opengl_gui::TextElement::resizeMesh(const Style &style, const Layout &layou
     glm::vec4 color = style.colorProperties.at("color").isSet ? style.colorProperties.at("color").value : glm::vec4(1);
     int fontSize = style.sizeProperties.at("font-size").isSet ? style.getPixelSize(style.sizeProperties.at("font-size"), &size, &windowSize, 1) : 20;
 
-    if (layout.width != prevLayout.width || fontSize != prevFontSize || color != prevColor)
+    if (layout.width != prevLayout.width || fontSize != prevFontSize)
     {
         if (thread)
         {
@@ -80,7 +80,19 @@ void opengl_gui::TextElement::resizeMesh(const Style &style, const Layout &layou
         return;
     }
     else if (thread)
+    {
         return;
+    }
+    else if (color != prevColor)
+    {
+        for (unsigned long i = 0; i < textBytes.size(); i += 4)
+        {
+            textBytes[i] = 255 * color.r;
+            textBytes[i + 1] = 255 * color.g;
+            textBytes[i + 2] = 255 * color.b;
+        }
+        prevColor = color;
+    }
 
     textureBytes = textBytes;
 
