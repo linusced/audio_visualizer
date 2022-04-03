@@ -10,9 +10,10 @@ namespace opengl_gui
     public:
         Window(int x, int y, int width, int height, std::string title);
         Window(int fullscreenWidth, int fullscreenHeight, std::string title);
-        ~Window();
 
         int x = 0, y = 0, width = 0, height = 0;
+
+        void terminate();
 
         void setPosition(int x, int y);
         void setSize(int width, int height);

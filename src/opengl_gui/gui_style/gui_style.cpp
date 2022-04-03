@@ -35,6 +35,7 @@ opengl_gui::Style::Style()
         {"overflow", MISC()},
         {"visibility", MISC()},
         {"transition", MISC()},
+        {"text-align", MISC()},
     };
 }
 

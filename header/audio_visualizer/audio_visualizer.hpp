@@ -13,18 +13,20 @@ namespace audio_visualizer
     public:
         App(bool *stop, std::string cssCode, std::string fontFilePath, std::vector<std::string> bgImageFilePaths, opengl_gui::Window *window);
 
+        void terminate() override;
+
         void loop() override;
 
         void setHSV(glm::vec3 _newHSV);
         void setText(std::string _newText);
         void setMultiplier(float _newMultiplier);
-        void setImage(int imageIndex);
+        void setImage(int _newImageIndex);
 
     private:
         static const double COLOR_TRANSITION_DURATION;
 
         bool *stop = nullptr;
-        AudioInput input;
+        AudioInput *input = nullptr;
 
         std::vector<unsigned char> waveformTextureBytes;
         int waveformTextureWidth, waveformTextureHeight;
@@ -34,8 +36,13 @@ namespace audio_visualizer
 
         float prevAudioPeak = 0.0f;
 
-        opengl_gui::Style::COLOR *textColor = nullptr;
+        opengl_gui::Style::COLOR *textColor1 = nullptr;
+        opengl_gui::Style::COLOR *textColor2 = nullptr;
         opengl_gui::Style::COLOR *bgOverlayColor = nullptr;
+
+        int imageIndex = 0;
+
+        void logData();
     };
 }
 

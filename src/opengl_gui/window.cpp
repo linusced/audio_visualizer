@@ -24,7 +24,8 @@ opengl_gui::Window::Window(int fullscreenWidth, int fullscreenHeight, std::strin
     this->width = fullscreenWidth;
     this->height = fullscreenHeight;
 }
-opengl_gui::Window::~Window()
+
+void opengl_gui::Window::terminate()
 {
     for (auto &i : standardCursors)
         glfwDestroyCursor(i.second);

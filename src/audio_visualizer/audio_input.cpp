@@ -27,12 +27,21 @@ void audio_visualizer::AudioInput::update()
 {
     alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, 1, &numSamples);
 
-    if (numSamples == 0)
+    auto error = alGetError();
+    if (error != AL_NO_ERROR)
+    {
+        std::cout << "\033[1;31mAL ERROR: \033[0m" << error << '\n';
         return;
+    }
+    else if (numSamples == 0)
+    {
+        return;
+    }
     else if (numSamples == BUFFER_SIZE)
+    {
         nextSample = 0;
-
-    if (nextSample + numSamples > BUFFER_SIZE)
+    }
+    else if (nextSample + numSamples > BUFFER_SIZE)
     {
         int prevNumSamples = numSamples;
         numSamples -= BUFFER_SIZE - nextSample;
@@ -61,4 +70,8 @@ const std::vector<int16_t> &audio_visualizer::AudioInput::getAudioData()
 void audio_visualizer::AudioInput::setMultiplier(float _newMultiplier)
 {
     multiplier = _newMultiplier;
+}
+float audio_visualizer::AudioInput::getMultiplier()
+{
+    return multiplier;
 }

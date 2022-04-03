@@ -50,6 +50,10 @@ void consoleInputThreadFunc(bool *stop, audio_visualizer::App *app)
                 }
                 app->setText(text);
             }
+            else if (consoleInput == "t")
+            {
+                app->setText("");
+            }
             else if (consoleInput[0] == 'm')
             {
                 std::string multiplier = consoleInput.substr(1);
@@ -92,17 +96,22 @@ int main()
 
     bool stop = false;
 
-    audio_visualizer::App app(&stop, cssCode, filePath("Arial.ttf"), {filePath("images/beach-sunset.jpg"), filePath("images/city-night.jpg"), filePath("images/club.jpg"), filePath("images/festival.jpg"), filePath("images/synthwave.jpg")}, &window);
+    audio_visualizer::App app(&stop, cssCode, filePath("Neonballroom.ttf"), {filePath("images/beach-sunset.jpg"), filePath("images/city-night.jpg"), filePath("images/club.jpg"), filePath("images/festival.png"), filePath("images/synthwave.jpg")}, &window);
 
     std::thread consoleInputThread(consoleInputThreadFunc, &stop, &app);
 
+    std::cout << "\033[1;32mProgram Successfully Initiated!\033[0m\n";
     app.loop();
+    std::cout << "\033[1;32mTerminating Program!\033[0m\n";
+
+    if (stop)
+        consoleInputThread.join();
 
     app.terminate();
 
-    if (consoleInputThread.joinable())
-        consoleInputThread.join();
+    window.terminate();
 
     opengl_gui::terminate();
-    return 0;
+
+    return 0; // if (!stop) consoleInputThread will be terminated and may cause memory leaks... Always close program using console command
 }

@@ -136,6 +136,15 @@ void opengl_gui::TextElement::resizeMesh(const Style &style, const Layout &layou
     if (outputHeight > layout.height)
         textOffsetY = 0;
 
+    const auto &textAlign = style.miscProperties.at("text-align");
+    if (textAlign.isSet)
+    {
+        if (textAlign.value == "left")
+            textOffsetX = 0;
+        else if (textAlign.value == "right")
+            textOffsetX = layout.width - outputWidth;
+    }
+
     mesh.vertices[0].position = {layout.x + textOffsetX, layout.y + textOffsetY};
     mesh.vertices[1].position = {layout.x + textOffsetX + outputWidth, layout.y + textOffsetY};
     mesh.vertices[2].position = {layout.x + textOffsetX + outputWidth, layout.y + textOffsetY + outputHeight};

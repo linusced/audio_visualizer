@@ -22,6 +22,7 @@ namespace audio_visualizer
         const std::vector<int16_t> &getAudioData();
 
         void setMultiplier(float _newMultiplier);
+        float getMultiplier();
 
     private:
         static const unsigned int SAMPLE_RATE, BUFFER_SIZE;
