@@ -39,21 +39,6 @@ void consoleInputThreadFunc(bool *stop, audio_visualizer::App *app)
 
                 app->setHSV(hsv);
             }
-            else if (consoleInput.substr(0, 2) == "t ")
-            {
-                std::string text = consoleInput.substr(2);
-                size_t newLinePos = text.find("\\n");
-                if (newLinePos != std::string::npos)
-                {
-                    text[newLinePos] = '\n';
-                    text.erase(text.begin() + newLinePos + 1);
-                }
-                app->setText(text);
-            }
-            else if (consoleInput == "t")
-            {
-                app->setText("");
-            }
             else if (consoleInput[0] == 'm')
             {
                 std::string multiplier = consoleInput.substr(1);
@@ -87,8 +72,8 @@ int main()
 {
     opengl_gui::init();
 
-    if (opengl_gui::Window::getContentScale() == 1)
-        glfwWindowHint(GLFW_SAMPLES, 8);
+    /* if (opengl_gui::Window::getContentScale() == 1)
+        glfwWindowHint(GLFW_SAMPLES, 8); */
 
     opengl_gui::Window window(-1, -1, 1280, 720, "Audio Visualizer");
 
@@ -96,7 +81,15 @@ int main()
 
     bool stop = false;
 
-    audio_visualizer::App app(&stop, cssCode, filePath("Neonballroom.ttf"), {filePath("images/beach-sunset.jpg"), filePath("images/city-night.jpg"), filePath("images/club.jpg"), filePath("images/festival.png"), filePath("images/synthwave.jpg")}, &window);
+    std::vector<std::string> imagePaths;
+    auto imageFilesIterator = std::filesystem::directory_iterator(filePath("images"));
+    for (auto &i : imageFilesIterator)
+        if (i.path().extension() == ".jpg" || i.path().extension() == ".png")
+            imagePaths.push_back(i.path());
+
+    std::sort(imagePaths.begin(), imagePaths.end());
+
+    audio_visualizer::App app(&stop, cssCode, filePath("Neonballroom.ttf"), imagePaths, &window);
 
     std::thread consoleInputThread(consoleInputThreadFunc, &stop, &app);
 

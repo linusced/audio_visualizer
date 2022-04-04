@@ -1,0 +1,28 @@
+.fullscreen {
+    width: 100vw;
+    height: 100vh;
+}
+
+.waveform {
+    top: 35%;
+    width: 100%;
+    height: 30%;
+}
+
+.text-1 {
+    top: 20%;
+    left: 2.5%;
+    font-size: 100%;
+    height: 10%;
+    width: 95%;
+    text-align: left;
+}
+
+.text-2 {
+    top: 30%;
+    left: 2.5%;
+    font-size: 100%;
+    height: 5%;
+    width: 95%;
+    text-align: left;
+}

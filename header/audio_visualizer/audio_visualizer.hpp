@@ -18,7 +18,6 @@ namespace audio_visualizer
         void loop() override;
 
         void setHSV(glm::vec3 _newHSV);
-        void setText(std::string _newText);
         void setMultiplier(float _newMultiplier);
         void setImage(int _newImageIndex);
 
@@ -36,8 +35,6 @@ namespace audio_visualizer
 
         float prevAudioPeak = 0.0f;
 
-        opengl_gui::Style::COLOR *textColor1 = nullptr;
-        opengl_gui::Style::COLOR *textColor2 = nullptr;
         opengl_gui::Style::COLOR *bgOverlayColor = nullptr;
 
         int imageIndex = 0;
