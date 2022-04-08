@@ -2,7 +2,7 @@
 
 const double audio_visualizer::App::COLOR_TRANSITION_DURATION = 4.0;
 
-audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFilePath, std::vector<std::string> bgImageFilePaths, opengl_gui::Window *window)
+audio_visualizer::App::App(bool *stop, std::string cssCode, std::vector<std::string> bgImageFilePaths, opengl_gui::Window *window)
     : opengl_gui::DrawLoop(window)
 {
     this->stop = stop;
@@ -25,9 +25,11 @@ audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFile
 
     std::cout << "Image textures created\n";
 
-    waveformTextureWidth = opengl_gui::Window::getMonitorWidth();
-    waveformTextureHeight = opengl_gui::Window::getMonitorHeight() * 0.3f;
+    waveformTextureWidth = input->OUTPUT_BUFFER_SIZE;
+    waveformTextureHeight = 2160 * 0.3f;
     waveformTextureBytes.resize((waveformTextureWidth * waveformTextureHeight) * 4);
+
+    std::cout << "waveformTextureWidth: " << waveformTextureWidth << " waveformTextureHeight: " << waveformTextureHeight << '\n';
 
     textures.push_back(new opengl_gui::Texture(waveformTextureBytes.data(), waveformTextureWidth, waveformTextureHeight, GL_RGBA));
 
@@ -44,8 +46,6 @@ audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFile
 
     imageElements.push_back(new opengl_gui::ImageElement(textures.back(), "waveform"));
     guiRenderer->addElement(imageElements[1]);
-
-    fonts.push_back(new opengl_gui::Font(fontFilePath));
 }
 
 void audio_visualizer::App::terminate()
@@ -81,14 +81,14 @@ void audio_visualizer::App::loop()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_BLEND);
 
+    input->start();
+
     while (!*stop && !window->shouldClose())
     {
         window->update();
 
         if (window->hasResized())
             guiRenderer->resize();
-
-        input->update();
 
         glm::vec3 currentHSV = HSV;
         double colorTransitionCurrentTime = window->getCurrentTime() - colorTransitionStartTime;
@@ -102,7 +102,7 @@ void audio_visualizer::App::loop()
         textures.back()->update(waveformTextureBytes.data(), waveformTextureWidth, waveformTextureHeight, GL_RGBA);
 
         int audioPeak = 0;
-        for (int i = 0; i < input->getAudioData().size(); i++)
+        for (int i = 0; i < input->OUTPUT_BUFFER_SIZE; i++)
             if (abs(input->getAudioData()[i]) > audioPeak)
                 audioPeak = abs(input->getAudioData()[i]);
 

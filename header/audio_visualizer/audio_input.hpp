@@ -14,10 +14,12 @@ namespace audio_visualizer
     class AudioInput
     {
     public:
+        static const unsigned int SAMPLE_RATE, OUTPUT_BUFFER_SIZE, INPUT_BUFFER_SIZE;
+
         AudioInput();
         ~AudioInput();
 
-        void update();
+        void start();
 
         const std::vector<int16_t> &getAudioData();
 
@@ -25,14 +27,14 @@ namespace audio_visualizer
         float getMultiplier();
 
     private:
-        static const unsigned int SAMPLE_RATE, BUFFER_SIZE;
-
-        int nextSample, numSamples;
+        static bool runThread;
+        static void threadFunc(ALCdevice *device, std::vector<int16_t> *bufferData, float *multiplier);
 
         ALCdevice *device = nullptr;
         std::vector<int16_t> bufferData;
 
         float multiplier = 1.0f;
+        std::thread *thread = nullptr;
     };
 }
 

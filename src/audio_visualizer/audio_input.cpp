@@ -1,65 +1,35 @@
 #include "../../header/audio_visualizer/audio_input.hpp"
 
 const unsigned int audio_visualizer::AudioInput::SAMPLE_RATE = 44100,
-                   audio_visualizer::AudioInput::BUFFER_SIZE = 2048;
+                   audio_visualizer::AudioInput::OUTPUT_BUFFER_SIZE = 4096,
+                   audio_visualizer::AudioInput::INPUT_BUFFER_SIZE = 512;
 
 audio_visualizer::AudioInput::AudioInput()
 {
-    bufferData.resize(BUFFER_SIZE);
+    bufferData.resize(OUTPUT_BUFFER_SIZE);
 
-    std::cout << "AudioInput()\n";
-    device = alcCaptureOpenDevice(nullptr, SAMPLE_RATE, AL_FORMAT_MONO16, BUFFER_SIZE);
-    alcCaptureStart(device);
-    std::cout << "AudioInput() - complete\n";
-
-    nextSample = 0;
+    device = alcCaptureOpenDevice(nullptr, SAMPLE_RATE, AL_FORMAT_MONO16, INPUT_BUFFER_SIZE);
 }
 
 audio_visualizer::AudioInput::~AudioInput()
 {
-    std::cout << "destruct AudioInput()\n";
+    if (thread)
+    {
+        runThread = false;
+        thread->join();
+        delete thread;
+    }
+
     alcCaptureStop(device);
     alcCaptureCloseDevice(device);
-    std::cout << "destruct AudioInput() - complete\n";
 }
 
-void audio_visualizer::AudioInput::update()
+void audio_visualizer::AudioInput::start()
 {
-    alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, 1, &numSamples);
+    alcCaptureStart(device);
 
-    auto error = alGetError();
-    if (error != AL_NO_ERROR)
-    {
-        std::cout << "\033[1;31mAL ERROR: \033[0m" << error << '\n';
-        return;
-    }
-    else if (numSamples == 0)
-    {
-        return;
-    }
-    else if (numSamples == BUFFER_SIZE)
-    {
-        nextSample = 0;
-    }
-    else if (nextSample + numSamples > BUFFER_SIZE)
-    {
-        int prevNumSamples = numSamples;
-        numSamples -= BUFFER_SIZE - nextSample;
-        alcCaptureSamples(device, bufferData.data() + nextSample, numSamples);
-
-        for (int i = nextSample; i < nextSample + numSamples; i++)
-            bufferData[i] *= multiplier;
-
-        numSamples = prevNumSamples - numSamples;
-        nextSample = 0;
-    }
-
-    alcCaptureSamples(device, bufferData.data() + nextSample, numSamples);
-
-    for (int i = nextSample; i < nextSample + numSamples; i++)
-        bufferData[i] *= multiplier;
-
-    nextSample += numSamples;
+    runThread = true;
+    thread = new std::thread(threadFunc, device, &bufferData, &multiplier);
 }
 
 const std::vector<int16_t> &audio_visualizer::AudioInput::getAudioData()
@@ -74,4 +44,27 @@ void audio_visualizer::AudioInput::setMultiplier(float _newMultiplier)
 float audio_visualizer::AudioInput::getMultiplier()
 {
     return multiplier;
+}
+
+bool audio_visualizer::AudioInput::runThread = true;
+
+void audio_visualizer::AudioInput::threadFunc(ALCdevice *device, std::vector<int16_t> *bufferData, float *multiplier)
+{
+    int numSamples;
+    std::vector<int16_t> inputBufferData(INPUT_BUFFER_SIZE);
+
+    while (runThread)
+    {
+        alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, 1, &numSamples);
+        if (numSamples != 0)
+        {
+            alcCaptureSamples(device, inputBufferData.data(), numSamples);
+
+            for (auto &i : inputBufferData)
+                i *= *multiplier;
+
+            bufferData->erase(bufferData->begin(), bufferData->begin() + numSamples);
+            bufferData->insert(bufferData->end(), inputBufferData.begin(), inputBufferData.begin() + numSamples);
+        }
+    }
 }

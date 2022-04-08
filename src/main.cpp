@@ -71,10 +71,6 @@ void consoleInputThreadFunc(bool *stop, audio_visualizer::App *app)
 int main()
 {
     opengl_gui::init();
-
-    /* if (opengl_gui::Window::getContentScale() == 1)
-        glfwWindowHint(GLFW_SAMPLES, 8); */
-
     opengl_gui::Window window(-1, -1, 1280, 720, "Audio Visualizer");
 
     std::string cssCode = opengl_gui::textFileData(filePath("style.css"));
@@ -89,7 +85,7 @@ int main()
 
     std::sort(imagePaths.begin(), imagePaths.end());
 
-    audio_visualizer::App app(&stop, cssCode, filePath("Neonballroom.ttf"), imagePaths, &window);
+    audio_visualizer::App app(&stop, cssCode, imagePaths, &window);
 
     std::thread consoleInputThread(consoleInputThreadFunc, &stop, &app);
 
@@ -103,8 +99,6 @@ int main()
     app.terminate();
 
     window.terminate();
-
     opengl_gui::terminate();
-
     return 0; // if (!stop) consoleInputThread will be terminated and may cause memory leaks... Always close program using console command
 }

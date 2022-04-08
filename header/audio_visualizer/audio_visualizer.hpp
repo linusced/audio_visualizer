@@ -11,7 +11,7 @@ namespace audio_visualizer
     class App : public opengl_gui::DrawLoop
     {
     public:
-        App(bool *stop, std::string cssCode, std::string fontFilePath, std::vector<std::string> bgImageFilePaths, opengl_gui::Window *window);
+        App(bool *stop, std::string cssCode, std::vector<std::string> bgImageFilePaths, opengl_gui::Window *window);
 
         void terminate() override;
 

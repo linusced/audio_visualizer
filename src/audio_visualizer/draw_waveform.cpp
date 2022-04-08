@@ -15,14 +15,13 @@ void audio_visualizer::drawWaveform(std::vector<unsigned char> &textureBytes, in
         textureBytes[i + 3] = 255;
     };
 
-    float step = audioData.size() / (float)textureWidth,
-          maxValue = powf(2, 16) / 2 - 1;
+    float maxValue = powf(2, 16) / 2 - 1;
 
     int prevY = -1;
 
     for (int x = 0; x < textureWidth; x++)
     {
-        int y = ((audioData[x * step] / maxValue) * 0.5f + 0.5f) * textureHeight;
+        int y = ((audioData[x] / maxValue) * 0.5f + 0.5f) * textureHeight;
 
         if (y == prevY || prevY == -1)
         {
