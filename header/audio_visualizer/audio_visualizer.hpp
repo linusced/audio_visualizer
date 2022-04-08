@@ -46,6 +46,7 @@ namespace audio_visualizer
         std::vector<double> frequencyDomain;
         fftw_complex *frequencyComplex = nullptr;
         fftw_plan frequencyPlan;
+        int audioPeakFrequencySize;
 
         void logData();
     };

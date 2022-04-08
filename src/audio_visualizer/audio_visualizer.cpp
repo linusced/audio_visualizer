@@ -52,6 +52,8 @@ audio_visualizer::App::App(bool *stop, std::string cssCode, std::vector<std::str
 
     frequencyComplex = (fftw_complex *)calloc(input->BUFFER_SIZE / 2 + 1, sizeof(fftw_complex));
     frequencyDomain.resize(input->BUFFER_SIZE / 4);
+
+    audioPeakFrequencySize = ceil((150.0 / (double)(input->SAMPLE_RATE / 2)) * frequencyDomain.size());
 }
 
 void audio_visualizer::App::terminate()
@@ -128,31 +130,19 @@ void audio_visualizer::App::loop()
         else
         {
             double audioPeak = 0.0;
-            if (window->isLmbDown())
-            {
-                for (int i = 0; i < input->BUFFER_SIZE; i++)
-                {
-                    double _abs = abs(input->bufferData[i]);
-                    if (_abs > audioPeak)
-                        audioPeak = _abs;
-                }
-            }
-            else
-            {
-                frequencyPlan = fftw_plan_dft_r2c_1d(input->BUFFER_SIZE, input->bufferData.data(), frequencyComplex, FFTW_ESTIMATE);
-                fftw_execute(frequencyPlan);
+            frequencyPlan = fftw_plan_dft_r2c_1d(input->BUFFER_SIZE, input->bufferData.data(), frequencyComplex, FFTW_ESTIMATE);
+            fftw_execute(frequencyPlan);
 
-                for (size_t i = 0; i < frequencyDomain.size(); i++)
-                    frequencyDomain[i] = 20.0 * log10(sqrt(pow(frequencyComplex[i + 1][0], 2) + pow(frequencyComplex[i + 1][1], 2)));
+            for (size_t i = 0; i < frequencyDomain.size(); i++)
+                frequencyDomain[i] = 20.0 * log10(sqrt(pow(frequencyComplex[i + 1][0], 2) + pow(frequencyComplex[i + 1][1], 2)));
 
-                fftw_destroy_plan(frequencyPlan);
+            fftw_destroy_plan(frequencyPlan);
 
-                for (int i = 0; i < 10; i++)
-                    if (frequencyDomain[i] > audioPeak)
-                        audioPeak = frequencyDomain[i];
+            for (int i = 0; i < audioPeakFrequencySize; i++)
+                if (frequencyDomain[i] > audioPeak)
+                    audioPeak = frequencyDomain[i];
 
-                audioPeak /= 50.0;
-            }
+            audioPeak /= 50.0;
 
             double prevAudioPeakAverage = 0.0;
             for (int i = 0; i < prevAudioPeak.size(); i++)
@@ -166,8 +156,8 @@ void audio_visualizer::App::loop()
             else if (audioPeakOutput < 0.0)
                 audioPeakOutput = 0.0;
 
-            if (audioPeakOutput - prevAudioPeakOutput < -0.1)
-                audioPeakOutput = prevAudioPeakOutput - 0.1;
+            if (audioPeakOutput - prevAudioPeakOutput < -0.03)
+                audioPeakOutput = prevAudioPeakOutput - 0.03;
 
             bgOverlayColor->value.a = (1.0 - audioPeakOutput * 0.3) - 0.7;
 
