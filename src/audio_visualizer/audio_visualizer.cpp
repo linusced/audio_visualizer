@@ -7,6 +7,7 @@ audio_visualizer::App::App(bool *stop, std::string cssCode, std::vector<std::str
 {
     this->stop = stop;
     input = new AudioInput();
+    beatTrack = new BTrack(input->BUFFER_SIZE / 2, input->BUFFER_SIZE);
 
     std::cout << "Loading image data\n";
 
@@ -25,7 +26,7 @@ audio_visualizer::App::App(bool *stop, std::string cssCode, std::vector<std::str
 
     std::cout << "Image textures created\n";
 
-    waveformTextureWidth = input->OUTPUT_BUFFER_SIZE;
+    waveformTextureWidth = input->BUFFER_SIZE;
     waveformTextureHeight = 2160 * 0.3f;
     waveformTextureBytes.resize((waveformTextureWidth * waveformTextureHeight) * 4);
 
@@ -51,6 +52,7 @@ audio_visualizer::App::App(bool *stop, std::string cssCode, std::vector<std::str
 void audio_visualizer::App::terminate()
 {
     delete input;
+    delete beatTrack;
 
     if (guiRenderer)
         delete guiRenderer;
@@ -98,21 +100,18 @@ void audio_visualizer::App::loop()
 
         glm::vec3 color = glm::rgbColor(currentHSV);
 
-        audio_visualizer::drawWaveform(waveformTextureBytes, waveformTextureWidth, waveformTextureHeight, color, input->getAudioData());
+        audio_visualizer::drawWaveform(waveformTextureBytes, waveformTextureWidth, waveformTextureHeight, color, input->bufferData);
         textures.back()->update(waveformTextureBytes.data(), waveformTextureWidth, waveformTextureHeight, GL_RGBA);
 
-        int audioPeak = 0;
-        for (int i = 0; i < input->OUTPUT_BUFFER_SIZE; i++)
-            if (abs(input->getAudioData()[i]) > audioPeak)
-                audioPeak = abs(input->getAudioData()[i]);
+        beatTrack->processAudioFrame(input->bufferData.data());
 
-        float fAudioPeak = audioPeak / (powf(2, 16) / 2.0f - 1.0f);
-        if (fAudioPeak - prevAudioPeak < -0.03f)
-            fAudioPeak = prevAudioPeak - 0.03f;
+        float audioPeak = beatTrack->beatDueInCurrentFrame();
+        if (audioPeak - prevAudioPeak < -0.1f)
+            audioPeak = prevAudioPeak - 0.1f;
 
-        prevAudioPeak = fAudioPeak;
+        prevAudioPeak = audioPeak;
 
-        bgOverlayColor->value.a = (1.0f - fAudioPeak * 0.3f) - 0.7f;
+        bgOverlayColor->value.a = (1.0f - audioPeak * 0.3f) - 0.7f;
         elements[0]->styleChange = true;
 
         guiRenderer->update();

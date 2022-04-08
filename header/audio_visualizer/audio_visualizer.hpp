@@ -2,9 +2,11 @@
 #define AUDIO_VISUALIZER
 
 #include "../opengl_gui/opengl_gui.hpp"
-#include "draw_waveform.hpp"
+#include "draw_functions.hpp"
 #include "audio_input.hpp"
+
 #include <glm/gtx/color_space.hpp>
+#include <BTrack.h>
 
 namespace audio_visualizer
 {
@@ -26,6 +28,7 @@ namespace audio_visualizer
 
         bool *stop = nullptr;
         AudioInput *input = nullptr;
+        BTrack *beatTrack = nullptr;
 
         std::vector<unsigned char> waveformTextureBytes;
         int waveformTextureWidth, waveformTextureHeight;

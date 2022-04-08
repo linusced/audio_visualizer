@@ -1,14 +1,13 @@
 #include "../../header/audio_visualizer/audio_input.hpp"
 
 const unsigned int audio_visualizer::AudioInput::SAMPLE_RATE = 44100,
-                   audio_visualizer::AudioInput::OUTPUT_BUFFER_SIZE = 4096,
-                   audio_visualizer::AudioInput::INPUT_BUFFER_SIZE = 512;
+                   audio_visualizer::AudioInput::BUFFER_SIZE = 4096;
 
 audio_visualizer::AudioInput::AudioInput()
 {
-    bufferData.resize(OUTPUT_BUFFER_SIZE);
+    bufferData.resize(BUFFER_SIZE);
 
-    device = alcCaptureOpenDevice(nullptr, SAMPLE_RATE, AL_FORMAT_MONO16, INPUT_BUFFER_SIZE);
+    device = alcCaptureOpenDevice(nullptr, SAMPLE_RATE, AL_FORMAT_MONO16, BUFFER_SIZE);
 }
 
 audio_visualizer::AudioInput::~AudioInput()
@@ -32,11 +31,6 @@ void audio_visualizer::AudioInput::start()
     thread = new std::thread(threadFunc, device, &bufferData, &multiplier);
 }
 
-const std::vector<int16_t> &audio_visualizer::AudioInput::getAudioData()
-{
-    return bufferData;
-}
-
 void audio_visualizer::AudioInput::setMultiplier(float _newMultiplier)
 {
     multiplier = _newMultiplier;
@@ -48,10 +42,13 @@ float audio_visualizer::AudioInput::getMultiplier()
 
 bool audio_visualizer::AudioInput::runThread = true;
 
-void audio_visualizer::AudioInput::threadFunc(ALCdevice *device, std::vector<int16_t> *bufferData, float *multiplier)
+void audio_visualizer::AudioInput::threadFunc(ALCdevice *device, std::vector<double> *bufferData, float *multiplier)
 {
+    const double maxValue = pow(2, 16) / 2.0 - 1.0;
     int numSamples;
-    std::vector<int16_t> inputBufferData(INPUT_BUFFER_SIZE);
+    std::vector<int16_t> inputBufferData(BUFFER_SIZE);
+    std::vector<double> inputBufferDataDouble(BUFFER_SIZE);
+    int i;
 
     while (runThread)
     {
@@ -60,11 +57,19 @@ void audio_visualizer::AudioInput::threadFunc(ALCdevice *device, std::vector<int
         {
             alcCaptureSamples(device, inputBufferData.data(), numSamples);
 
-            for (auto &i : inputBufferData)
-                i *= *multiplier;
+            if (numSamples == BUFFER_SIZE)
+            {
+                for (i = 0; i < numSamples; i++)
+                    bufferData->at(i) = (inputBufferData[i] * *multiplier) / maxValue;
+            }
+            else
+            {
+                for (i = 0; i < numSamples; i++)
+                    inputBufferDataDouble[i] = (inputBufferData[i] * *multiplier) / maxValue;
 
-            bufferData->erase(bufferData->begin(), bufferData->begin() + numSamples);
-            bufferData->insert(bufferData->end(), inputBufferData.begin(), inputBufferData.begin() + numSamples);
+                bufferData->erase(bufferData->begin(), bufferData->begin() + numSamples);
+                bufferData->insert(bufferData->end(), inputBufferDataDouble.begin(), inputBufferDataDouble.begin() + numSamples);
+            }
         }
     }
 }
