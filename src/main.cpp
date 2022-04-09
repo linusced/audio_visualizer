@@ -57,6 +57,23 @@ void consoleInputThreadFunc(bool *stop, audio_visualizer::App *app)
                 int iIndex = std::stof(index) - 1;
                 app->setImage(iIndex);
             }
+            else if (consoleInput[0] == 't' || consoleInput.substr(0, 2) == "lt")
+            {
+                std::string time = consoleInput.substr(consoleInput[0] == 't' ? 1 : 2);
+                if ((time[0] < '0' || time[0] > '9') && time[0] != '.')
+                    time.erase(time.begin());
+
+                double dTime = std::stod(time);
+                app->setLyricsTime(dTime);
+            }
+            else if (consoleInput[0] == 'l')
+            {
+                std::string lyrics = consoleInput.substr(1);
+                if (lyrics[0] == ' ')
+                    lyrics.erase(lyrics.begin());
+
+                app->setLyrics(lyrics);
+            }
             else
                 throw "";
         }
@@ -85,7 +102,15 @@ int main()
 
     std::sort(imagePaths.begin(), imagePaths.end());
 
-    audio_visualizer::App app(&stop, cssCode, imagePaths, &window);
+    std::vector<std::string> lyricsPaths;
+    auto lyricsFilesIterator = std::filesystem::directory_iterator(filePath("lyrics"));
+    for (auto &i : lyricsFilesIterator)
+        if (i.path().extension() == ".dat")
+            lyricsPaths.push_back(i.path());
+
+    std::sort(lyricsPaths.begin(), lyricsPaths.end());
+
+    audio_visualizer::App app(&stop, cssCode, filePath("font.ttf"), imagePaths, lyricsPaths, &window);
 
     std::thread consoleInputThread(consoleInputThreadFunc, &stop, &app);
 

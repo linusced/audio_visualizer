@@ -12,7 +12,7 @@ namespace audio_visualizer
     class App : public opengl_gui::DrawLoop
     {
     public:
-        App(bool *stop, std::string cssCode, std::vector<std::string> bgImageFilePaths, opengl_gui::Window *window);
+        App(bool *stop, std::string cssCode, std::string fontFilePath, std::vector<std::string> &bgImageFilePaths, std::vector<std::string> &lyricsFilePaths, opengl_gui::Window *window);
 
         void terminate() override;
 
@@ -21,9 +21,27 @@ namespace audio_visualizer
         void setHSV(glm::vec3 _newHSV);
         void setMultiplier(float _newMultiplier);
         void setImage(int _newImageIndex);
+        void setLyrics(std::string _newActiveTrackLyricsName);
+        void setLyricsTime(double _newActiveTrackLyricsTimeOffset);
 
     private:
         static const double COLOR_TRANSITION_DURATION, IMAGE_TRANSITION_DURATION;
+
+        struct LyricsLine
+        {
+            double time;
+            std::string str;
+        };
+        struct TrackLyrics
+        {
+            double timeOffset;
+            int lyricsIndex;
+            std::vector<LyricsLine> data;
+        };
+
+        void logData();
+
+        void parseLyrics(std::string lyricsFileStr);
 
         bool *stop = nullptr;
         AudioInput *input = nullptr;
@@ -37,7 +55,7 @@ namespace audio_visualizer
         std::vector<double> prevAudioPeak;
         double prevAudioPeakOutput = 0.0;
 
-        opengl_gui::Style::COLOR *bgOverlayColor = nullptr;
+        opengl_gui::Style::COLOR *bgOverlayColor = nullptr, *textColor = nullptr;
 
         int imageIndex = 0;
         double imageTransitionStartTime = -100.0;
@@ -48,7 +66,11 @@ namespace audio_visualizer
         fftw_plan frequencyPlan;
         int audioPeakFrequencySize;
 
-        void logData();
+        bool clearText = false;
+
+        std::map<std::string, TrackLyrics *> trackLyricsMap;
+        TrackLyrics *activeTrackLyrics = nullptr;
+        std::string activeTrackLyricsName;
     };
 }
 
