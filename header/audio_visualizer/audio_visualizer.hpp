@@ -18,11 +18,12 @@ namespace audio_visualizer
 
         void loop() override;
 
-        void setHSV(glm::vec3 _newHSV);
-        void setMultiplier(float _newMultiplier);
-        void setImage(int _newImageIndex);
-        void setLyrics(std::string _newActiveTrackLyricsName);
-        void setLyricsTime(double _newActiveTrackLyricsTimeOffset);
+        void setHSV(glm::vec3 HSV);
+        void setMultiplier(float multiplier);
+        void setImage(int imageIndex);
+        void setLyrics(std::string name);
+        void setLyricsTime(double time);
+        void setTimer(double time);
 
     private:
         static const double COLOR_TRANSITION_DURATION, IMAGE_TRANSITION_DURATION;
@@ -71,6 +72,9 @@ namespace audio_visualizer
         std::map<std::string, TrackLyrics *> trackLyricsMap;
         TrackLyrics *activeTrackLyrics = nullptr;
         std::string activeTrackLyricsName;
+
+        double timerStart = 0.0, timerDuration = 0.0;
+        int timerPrevSeconds = -1;
     };
 }
 

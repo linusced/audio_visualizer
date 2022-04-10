@@ -91,16 +91,48 @@ void audio_visualizer::App::loop()
             textElements[0]->setText("");
             clearText = false;
         }
+        else if (timerDuration != 0.0)
+        {
+            double timerCurrentTime = window->getCurrentTime() - timerStart;
+            if (timerCurrentTime < timerDuration)
+            {
+                timerCurrentTime = timerDuration - timerCurrentTime;
 
-        if (activeTrackLyricsName.size() > 0)
+                double dMinutes = timerCurrentTime / 60.0;
+                int minutes = dMinutes,
+                    seconds = (dMinutes - minutes) * 60;
+
+                if (timerPrevSeconds == -1)
+                    timerPrevSeconds = seconds;
+                else if (seconds != timerPrevSeconds)
+                {
+                    std::string str;
+                    if (minutes < 10)
+                        str += '0';
+                    str += std::to_string(minutes);
+                    str += ':';
+                    if (seconds < 10)
+                        str += '0';
+                    str += std::to_string(seconds);
+
+                    textElements[0]->setText(str);
+
+                    timerPrevSeconds = seconds;
+                }
+            }
+            else
+            {
+                timerDuration = 0.0;
+                textElements[0]->setText("");
+            }
+        }
+        else if (activeTrackLyricsName.size() != 0 && activeTrackLyrics->lyricsIndex < activeTrackLyrics->data.size())
         {
             double trackTime = window->getCurrentTime() - activeTrackLyrics->timeOffset;
             if (trackTime > activeTrackLyrics->data[activeTrackLyrics->lyricsIndex].time)
             {
                 textElements[0]->setText(activeTrackLyrics->data[activeTrackLyrics->lyricsIndex].str);
                 activeTrackLyrics->lyricsIndex++;
-                if (activeTrackLyrics->lyricsIndex >= activeTrackLyrics->data.size())
-                    activeTrackLyricsName.clear();
             }
         }
 

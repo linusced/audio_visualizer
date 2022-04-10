@@ -57,22 +57,37 @@ void consoleInputThreadFunc(bool *stop, audio_visualizer::App *app)
                 int iIndex = std::stof(index) - 1;
                 app->setImage(iIndex);
             }
-            else if (consoleInput[0] == 't' || consoleInput.substr(0, 2) == "lt")
-            {
-                std::string time = consoleInput.substr(consoleInput[0] == 't' ? 1 : 2);
-                if ((time[0] < '0' || time[0] > '9') && time[0] != '.')
-                    time.erase(time.begin());
-
-                double dTime = std::stod(time);
-                app->setLyricsTime(dTime);
-            }
             else if (consoleInput[0] == 'l')
             {
-                std::string lyrics = consoleInput.substr(1);
-                if (lyrics[0] == ' ')
-                    lyrics.erase(lyrics.begin());
+                if (consoleInput.size() == 1)
 
-                app->setLyrics(lyrics);
+                    app->setLyrics("");
+
+                else
+                {
+                    std::string lyrics = consoleInput.substr(1);
+                    if (lyrics[0] == ' ')
+                        lyrics.erase(lyrics.begin());
+
+                    app->setLyrics(lyrics);
+                }
+            }
+            else if (consoleInput[0] == 't')
+            {
+                if (consoleInput.size() == 1)
+                    app->setTimer(0);
+                else
+                {
+                    std::string time = consoleInput.substr(1);
+                    if ((time[0] < '0' || time[0] > '9') && time[0] != '.' && time[0] != '-')
+                        time.erase(time.begin());
+
+                    double dTime = std::stod(time);
+                    if (time[0] == '-')
+                        app->setTimer(dTime);
+                    else
+                        app->setLyricsTime(dTime);
+                }
             }
             else
                 throw "";

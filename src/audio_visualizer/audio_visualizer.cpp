@@ -56,7 +56,7 @@ audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFile
     audioPeakFrequencySize = ceil((150.0 / (double)(input->SAMPLE_RATE / 2)) * frequencyDomain.size());
 
     fonts.push_back(new opengl_gui::Font(fontFilePath));
-    textElements.push_back(new opengl_gui::TextElement(fonts[0], "Hasta la vista, Pablo!", "text", false));
+    textElements.push_back(new opengl_gui::TextElement(fonts[0], "", "text", false));
     guiRenderer->addElement(textElements[0]);
 
     textColor = &textElements[0]->elementStyle.colorProperties["color"];
@@ -100,57 +100,76 @@ void audio_visualizer::App::terminate()
         delete i;
 }
 
-void audio_visualizer::App::setHSV(glm::vec3 _newHSV)
+void audio_visualizer::App::setHSV(glm::vec3 HSV)
 {
-    prevHSV = HSV;
-    HSV = _newHSV;
+    prevHSV = this->HSV;
+    this->HSV = HSV;
     colorTransitionStartTime = window->getCurrentTime();
     logData();
 }
-void audio_visualizer::App::setMultiplier(float _newMultiplier)
+void audio_visualizer::App::setMultiplier(float multiplier)
 {
-    input->setMultiplier(_newMultiplier);
+    input->setMultiplier(multiplier);
     logData();
 }
-void audio_visualizer::App::setImage(int _newImageIndex)
+void audio_visualizer::App::setImage(int imageIndex)
 {
-    if (_newImageIndex >= 0 && _newImageIndex < textures.size() - 1 && _newImageIndex != imageIndex)
+    if (imageIndex >= 0 && imageIndex < textures.size() - 1 && imageIndex != imageIndex)
     {
         isImageTransitionNewImageSet = false;
         imageTransitionStartTime = window->getCurrentTime();
-        imageIndex = _newImageIndex;
+        this->imageIndex = imageIndex;
         logData();
     }
 }
-void audio_visualizer::App::setLyrics(std::string _newActiveTrackLyricsName)
+void audio_visualizer::App::setLyrics(std::string name)
 {
-    if (_newActiveTrackLyricsName != activeTrackLyricsName)
+    activeTrackLyricsName = name;
+    if (activeTrackLyricsName.size() > 0)
     {
-        activeTrackLyricsName = _newActiveTrackLyricsName;
-        if (activeTrackLyricsName.size() > 0)
+        auto it = trackLyricsMap.find(activeTrackLyricsName);
+        if (it != trackLyricsMap.end())
         {
-            activeTrackLyrics = trackLyricsMap[activeTrackLyricsName];
+            activeTrackLyrics = it->second;
             activeTrackLyrics->timeOffset = window->getCurrentTime();
             activeTrackLyrics->lyricsIndex = 0;
         }
+        else
+            activeTrackLyricsName.clear();
+    }
+    logData();
+
+    timerDuration = 0.0;
+    clearText = true;
+}
+void audio_visualizer::App::setLyricsTime(double time)
+{
+    if (activeTrackLyricsName.size() != 0)
+    {
+        activeTrackLyrics->timeOffset = window->getCurrentTime() - time;
+        for (int i = 0; i < activeTrackLyrics->data.size(); i++)
+            if (activeTrackLyrics->data[i].time > time)
+            {
+                activeTrackLyrics->lyricsIndex = i - 1;
+                break;
+            }
+
+        if (activeTrackLyrics->lyricsIndex == -1)
+            activeTrackLyrics->lyricsIndex = 0;
 
         clearText = true;
     }
 }
-void audio_visualizer::App::setLyricsTime(double _newActiveTrackLyricsTimeOffset)
+void audio_visualizer::App::setTimer(double time)
 {
-    if (activeTrackLyrics)
-    {
-        activeTrackLyrics->timeOffset = window->getCurrentTime() - _newActiveTrackLyricsTimeOffset;
-        for (int i = 0; i < activeTrackLyrics->data.size(); i++)
-            if (activeTrackLyrics->data[i].time > _newActiveTrackLyricsTimeOffset)
-            {
-                activeTrackLyrics->lyricsIndex = i;
-                break;
-            }
+    timerStart = window->getCurrentTime();
+    timerDuration = abs(time);
 
+    activeTrackLyricsName.clear();
+    if (timerDuration == 0.0)
         clearText = true;
-    }
+
+    logData();
 }
 
 void audio_visualizer::App::logData()
@@ -160,5 +179,6 @@ void audio_visualizer::App::logData()
               << "Multiplier = " << input->getMultiplier() << '\n'
               << "Image = " << imageIndex + 1 << '\n'
               << "Track Lyrics = " << activeTrackLyricsName << '\n'
+              << "Timer = " << timerDuration << '\n'
               << "\033[1;34m--------\033[0m\n";
 }
