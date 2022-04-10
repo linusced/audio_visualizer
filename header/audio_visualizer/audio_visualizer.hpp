@@ -12,7 +12,7 @@ namespace audio_visualizer
     class App : public opengl_gui::DrawLoop
     {
     public:
-        App(bool *stop, std::string cssCode, std::string fontFilePath, std::vector<std::string> &bgImageFilePaths, std::vector<std::string> &lyricsFilePaths, opengl_gui::Window *window);
+        App(bool *stop, std::string cssCode, std::string fontFilePath, std::vector<std::string> &bgImageFilePaths, opengl_gui::Window *window);
 
         void terminate() override;
 
@@ -21,28 +21,13 @@ namespace audio_visualizer
         void setHSV(glm::vec3 HSV);
         void setMultiplier(float multiplier);
         void setImage(int imageIndex);
-        void setLyrics(std::string name);
-        void setLyricsTime(double time);
         void setTimer(double time);
+        void setText(std::string text);
 
     private:
         static const double COLOR_TRANSITION_DURATION, IMAGE_TRANSITION_DURATION;
 
-        struct LyricsLine
-        {
-            double time;
-            std::string str;
-        };
-        struct TrackLyrics
-        {
-            double timeOffset;
-            int lyricsIndex;
-            std::vector<LyricsLine> data;
-        };
-
         void logData();
-
-        void parseLyrics(std::string lyricsFileStr);
 
         bool *stop = nullptr;
         AudioInput *input = nullptr;
@@ -68,10 +53,6 @@ namespace audio_visualizer
         int audioPeakFrequencySize;
 
         bool clearText = false;
-
-        std::map<std::string, TrackLyrics *> trackLyricsMap;
-        TrackLyrics *activeTrackLyrics = nullptr;
-        std::string activeTrackLyricsName;
 
         double timerStart = 0.0, timerDuration = 0.0;
         int timerPrevSeconds = -1;

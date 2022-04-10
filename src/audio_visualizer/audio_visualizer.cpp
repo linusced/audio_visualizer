@@ -3,7 +3,7 @@
 const double audio_visualizer::App::COLOR_TRANSITION_DURATION = 4.0,
              audio_visualizer::App::IMAGE_TRANSITION_DURATION = 1.0;
 
-audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFilePath, std::vector<std::string> &bgImageFilePaths, std::vector<std::string> &lyricsFilePaths, opengl_gui::Window *window)
+audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFilePath, std::vector<std::string> &bgImageFilePaths, opengl_gui::Window *window)
     : opengl_gui::DrawLoop(window)
 {
     this->stop = stop;
@@ -62,11 +62,6 @@ audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFile
     textColor = &textElements[0]->elementStyle.colorProperties["color"];
     textColor->isSet = true;
     textColor->value = glm::vec4(1.0f);
-
-    std::cout << "Parsing lyrics\n";
-
-    for (auto &str : lyricsFilePaths)
-        parseLyrics(opengl_gui::textFileData(str));
 }
 
 void audio_visualizer::App::terminate()
@@ -74,9 +69,6 @@ void audio_visualizer::App::terminate()
     fftw_free(frequencyComplex);
 
     delete input;
-
-    for (auto &i : trackLyricsMap)
-        delete i.second;
 
     if (guiRenderer)
         delete guiRenderer;
@@ -114,7 +106,7 @@ void audio_visualizer::App::setMultiplier(float multiplier)
 }
 void audio_visualizer::App::setImage(int imageIndex)
 {
-    if (imageIndex >= 0 && imageIndex < textures.size() - 1 && imageIndex != imageIndex)
+    if (imageIndex >= 0 && imageIndex < textures.size() - 1 && imageIndex != this->imageIndex)
     {
         isImageTransitionNewImageSet = false;
         imageTransitionStartTime = window->getCurrentTime();
@@ -122,53 +114,20 @@ void audio_visualizer::App::setImage(int imageIndex)
         logData();
     }
 }
-void audio_visualizer::App::setLyrics(std::string name)
-{
-    activeTrackLyricsName = name;
-    if (activeTrackLyricsName.size() > 0)
-    {
-        auto it = trackLyricsMap.find(activeTrackLyricsName);
-        if (it != trackLyricsMap.end())
-        {
-            activeTrackLyrics = it->second;
-            activeTrackLyrics->timeOffset = window->getCurrentTime();
-            activeTrackLyrics->lyricsIndex = 0;
-        }
-        else
-            activeTrackLyricsName.clear();
-    }
-    logData();
-
-    timerDuration = 0.0;
-    clearText = true;
-}
-void audio_visualizer::App::setLyricsTime(double time)
-{
-    if (activeTrackLyricsName.size() != 0)
-    {
-        activeTrackLyrics->timeOffset = window->getCurrentTime() - time;
-        for (int i = 0; i < activeTrackLyrics->data.size(); i++)
-            if (activeTrackLyrics->data[i].time > time)
-            {
-                activeTrackLyrics->lyricsIndex = i - 1;
-                break;
-            }
-
-        if (activeTrackLyrics->lyricsIndex == -1)
-            activeTrackLyrics->lyricsIndex = 0;
-
-        clearText = true;
-    }
-}
 void audio_visualizer::App::setTimer(double time)
 {
     timerStart = window->getCurrentTime();
     timerDuration = abs(time);
 
-    activeTrackLyricsName.clear();
     if (timerDuration == 0.0)
         clearText = true;
 
+    logData();
+}
+void audio_visualizer::App::setText(std::string text)
+{
+    timerDuration = 0.0;
+    textElements[0]->setText(text);
     logData();
 }
 
@@ -178,7 +137,7 @@ void audio_visualizer::App::logData()
               << "HSV = " << HSV[0] << ", " << HSV[1] << ", " << HSV[2] << '\n'
               << "Multiplier = " << input->getMultiplier() << '\n'
               << "Image = " << imageIndex + 1 << '\n'
-              << "Track Lyrics = " << activeTrackLyricsName << '\n'
+              << "Text = " << (timerDuration == 0.0 ? textElements[0]->getText() : "") << '\n'
               << "Timer = " << timerDuration << '\n'
               << "\033[1;34m--------\033[0m\n";
 }

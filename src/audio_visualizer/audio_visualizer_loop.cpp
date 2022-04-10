@@ -126,15 +126,6 @@ void audio_visualizer::App::loop()
                 textElements[0]->setText("");
             }
         }
-        else if (activeTrackLyricsName.size() != 0 && activeTrackLyrics->lyricsIndex < activeTrackLyrics->data.size())
-        {
-            double trackTime = window->getCurrentTime() - activeTrackLyrics->timeOffset;
-            if (trackTime > activeTrackLyrics->data[activeTrackLyrics->lyricsIndex].time)
-            {
-                textElements[0]->setText(activeTrackLyrics->data[activeTrackLyrics->lyricsIndex].str);
-                activeTrackLyrics->lyricsIndex++;
-            }
-        }
 
         guiRenderer->update();
 
