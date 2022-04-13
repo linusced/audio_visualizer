@@ -109,8 +109,7 @@ void audio_visualizer::App::loop()
                     std::string str;
                     if (minutes < 10)
                         str += '0';
-                    str += std::to_string(minutes);
-                    str += ':';
+                    str += std::to_string(minutes) + ':';
                     if (seconds < 10)
                         str += '0';
                     str += std::to_string(seconds);
@@ -124,6 +123,7 @@ void audio_visualizer::App::loop()
             {
                 timerDuration = 0.0;
                 textElements[0]->setText("");
+                logData();
             }
         }
 
