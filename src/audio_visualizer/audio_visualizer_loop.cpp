@@ -31,7 +31,7 @@ void audio_visualizer::App::loop()
         {
             if (imageTransitionCurrentTime < IMAGE_TRANSITION_DURATION / 2.0)
             {
-                bgOverlayColor->value.a = (imageTransitionCurrentTime / (IMAGE_TRANSITION_DURATION / 2.0)) * 0.7 + 0.3;
+                bgOverlayColor->value.a = (imageTransitionCurrentTime / (IMAGE_TRANSITION_DURATION / 2.0)) * 0.85 + 0.15;
             }
             else
             {
@@ -40,7 +40,7 @@ void audio_visualizer::App::loop()
                     imageElements[0]->setImage(textures[imageIndex]);
                     isImageTransitionNewImageSet = true;
                 }
-                bgOverlayColor->value.a = 1.0 - ((imageTransitionCurrentTime - (IMAGE_TRANSITION_DURATION / 2.0)) / (IMAGE_TRANSITION_DURATION / 2.0)) * 0.7;
+                bgOverlayColor->value.a = 1.0 - ((imageTransitionCurrentTime - (IMAGE_TRANSITION_DURATION / 2.0)) / (IMAGE_TRANSITION_DURATION / 2.0)) * 0.85;
             }
         }
         else
@@ -75,7 +75,7 @@ void audio_visualizer::App::loop()
             if (audioPeakOutput - prevAudioPeakOutput < -0.03)
                 audioPeakOutput = prevAudioPeakOutput - 0.03;
 
-            bgOverlayColor->value.a = (1.0 - audioPeakOutput * 0.3) - 0.7;
+            bgOverlayColor->value.a = (1.0 - audioPeakOutput * 0.15) - 0.85;
 
             prevAudioPeak.erase(prevAudioPeak.begin());
             prevAudioPeak.push_back(audioPeak);
