@@ -23,6 +23,7 @@ namespace audio_visualizer
         void setImage(int imageIndex);
         void setTimer(double time);
         void setText(std::string text);
+        void setBeatIntensity(float intensity);
 
     private:
         static const double COLOR_TRANSITION_DURATION, IMAGE_TRANSITION_DURATION;
@@ -51,6 +52,8 @@ namespace audio_visualizer
         fftw_complex *frequencyComplex = nullptr;
         fftw_plan frequencyPlan;
         int audioPeakFrequencySize;
+
+        float beatIntensity;
 
         bool clearText = false;
 

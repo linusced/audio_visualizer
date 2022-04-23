@@ -62,6 +62,8 @@ audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFile
     textColor = &textElements[0]->elementStyle.colorProperties["color"];
     textColor->isSet = true;
     textColor->value = glm::vec4(1.0f);
+
+    beatIntensity = 0.2f;
 }
 
 void audio_visualizer::App::terminate()
@@ -130,6 +132,11 @@ void audio_visualizer::App::setText(std::string text)
     textElements[0]->setText(text);
     logData();
 }
+void audio_visualizer::App::setBeatIntensity(float intensity)
+{
+    beatIntensity = intensity;
+    logData();
+}
 
 void audio_visualizer::App::logData()
 {
@@ -139,5 +146,6 @@ void audio_visualizer::App::logData()
               << "Image = " << imageIndex + 1 << '\n'
               << "Text = " << (timerDuration == 0.0 ? textElements[0]->getText() : "") << '\n'
               << "Timer = " << timerDuration << '\n'
+              << "Beat Intensity = " << beatIntensity << '\n'
               << "\033[1;34m--------\033[0m\n";
 }

@@ -42,7 +42,7 @@ void consoleInputThreadFunc(bool *stop, audio_visualizer::App *app)
             else if (consoleInput[0] == 'm')
             {
                 std::string multiplier = consoleInput.substr(1);
-                if (multiplier[0] < '0' || multiplier[0] > '9')
+                if ((multiplier[0] < '0' || multiplier[0] > '9') && multiplier[0] != '.')
                     multiplier.erase(multiplier.begin());
 
                 float fMultiplier = std::stof(multiplier);
@@ -74,6 +74,15 @@ void consoleInputThreadFunc(bool *stop, audio_visualizer::App *app)
             else if (consoleInput[0] == 't')
             {
                 app->setText(consoleInput.substr(1));
+            }
+            else if (consoleInput[0] == 'b')
+            {
+                std::string intensity = consoleInput.substr(1);
+                if ((intensity[0] < '0' || intensity[0] > '9') && intensity[0] != '.')
+                    intensity.erase(intensity.begin());
+
+                float fIntensity = std::stof(intensity);
+                app->setBeatIntensity(fIntensity);
             }
             else
                 throw "";
