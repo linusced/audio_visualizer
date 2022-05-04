@@ -19,13 +19,7 @@ int main()
 
     std::sort(imagePaths.begin(), imagePaths.end());
 
-    std::vector<std::string> lyricsPaths;
-    auto lyricsFileIterator = std::filesystem::directory_iterator(filePath("lyrics"));
-    for (auto &i : lyricsFileIterator)
-        if (i.path().extension() == ".dat")
-            lyricsPaths.push_back(i.path());
-
-    audio_visualizer::App app(&stop, cssCode, filePath("font.ttf"), imagePaths, lyricsPaths, &window);
+    audio_visualizer::App app(&stop, cssCode, filePath("font.ttf"), imagePaths, &window);
 
     std::thread consoleInputThread(consoleInputThreadFunc, &stop, &app);
 

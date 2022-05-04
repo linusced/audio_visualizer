@@ -12,7 +12,7 @@ namespace audio_visualizer
     class App : public opengl_gui::DrawLoop
     {
     public:
-        App(bool *stop, std::string cssCode, std::string fontFilePath, std::vector<std::string> &bgImageFilePaths, std::vector<std::string> &lyricsFilePaths, opengl_gui::Window *window);
+        App(bool *stop, std::string cssCode, std::string fontFilePath, std::vector<std::string> &bgImageFilePaths, opengl_gui::Window *window);
 
         void terminate() override;
 
@@ -24,8 +24,6 @@ namespace audio_visualizer
         void setTimer(double time);
         void setText(std::string text);
         void setBeatIntensity(float intensity);
-        void setLyrics(std::string lyricsName);
-        void setLyricsTime(double time);
 
     private:
         static const double COLOR_TRANSITION_DURATION, IMAGE_TRANSITION_DURATION;
@@ -61,21 +59,6 @@ namespace audio_visualizer
 
         double timerStart = 0.0, timerDuration = 0.0;
         int timerPrevSeconds = -1;
-
-        struct Lyrics
-        {
-            std::string str;
-            double time;
-        };
-
-        std::map<std::string, std::vector<Lyrics>> trackLyrics;
-
-        std::vector<Lyrics> *activeLyrics = nullptr;
-        std::string activeLyricsName;
-        double activeLyricsStartTime = 0.0;
-        int activeLyricsIndex = 0;
-
-        void loadLyrics(std::vector<std::string> &lyricsFilePaths);
     };
 }
 

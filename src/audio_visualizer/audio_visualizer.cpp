@@ -3,7 +3,7 @@
 const double audio_visualizer::App::COLOR_TRANSITION_DURATION = 4.0,
              audio_visualizer::App::IMAGE_TRANSITION_DURATION = 1.0;
 
-audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFilePath, std::vector<std::string> &bgImageFilePaths, std::vector<std::string> &lyricsFilePaths, opengl_gui::Window *window)
+audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFilePath, std::vector<std::string> &bgImageFilePaths, opengl_gui::Window *window)
     : opengl_gui::DrawLoop(window)
 {
     this->stop = stop;
@@ -64,9 +64,6 @@ audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFile
     textColor->value = glm::vec4(1.0f);
 
     beatIntensity = 0.2f;
-
-    std::cout << "Loading lyrics\n";
-    loadLyrics(lyricsFilePaths);
 }
 
 void audio_visualizer::App::terminate()
@@ -127,50 +124,18 @@ void audio_visualizer::App::setTimer(double time)
     if (timerDuration == 0.0)
         clearText = true;
 
-    activeLyricsName.clear();
     logData();
 }
 void audio_visualizer::App::setText(std::string text)
 {
     timerDuration = 0.0;
     textElements[0]->setText(text);
-    activeLyricsName.clear();
     logData();
 }
 void audio_visualizer::App::setBeatIntensity(float intensity)
 {
     beatIntensity = intensity;
     logData();
-}
-void audio_visualizer::App::setLyrics(std::string lyricsName)
-{
-    auto it = trackLyrics.find(lyricsName);
-    if (it != trackLyrics.end())
-    {
-        activeLyricsName = lyricsName;
-        activeLyrics = &it->second;
-        activeLyricsIndex = 0;
-        activeLyricsStartTime = window->getCurrentTime();
-    }
-    else
-    {
-        activeLyricsName.clear();
-        clearText = true;
-    }
-    logData();
-}
-void audio_visualizer::App::setLyricsTime(double time)
-{
-    if (!activeLyricsName.empty())
-    {
-        activeLyricsStartTime = window->getCurrentTime() - time;
-        for (int i = 0; i < activeLyrics->size(); i++)
-            if (activeLyrics->at(i).time > time)
-            {
-                activeLyricsIndex = i;
-                break;
-            }
-    }
 }
 
 void audio_visualizer::App::logData()
@@ -182,6 +147,5 @@ void audio_visualizer::App::logData()
               << "Text = " << (timerDuration == 0.0 ? textElements[0]->getText() : "") << '\n'
               << "Timer = " << timerDuration << '\n'
               << "Beat Intensity = " << beatIntensity << '\n'
-              << "Lyrics = " << activeLyricsName << '\n'
               << "\033[1;34m--------\033[0m\n";
 }

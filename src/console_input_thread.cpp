@@ -83,23 +83,6 @@ void consoleInputThreadFunc(bool *stop, audio_visualizer::App *app)
                 float fIntensity = std::stof(intensity);
                 app->setBeatIntensity(fIntensity);
             }
-            else if (consoleInput.substr(0, 2) == "l-")
-            {
-                std::string lyricsTime = consoleInput.substr(2);
-                if ((lyricsTime[0] < '0' || lyricsTime[0] > '9') && lyricsTime[0] != '.')
-                    lyricsTime.erase(lyricsTime.begin());
-
-                double dLyricsTime = std::stod(lyricsTime);
-                app->setLyricsTime(dLyricsTime);
-            }
-            else if (consoleInput[0] == 'l')
-            {
-                std::string lyricsName = consoleInput.substr(1);
-                if (lyricsName[0] == ' ')
-                    lyricsName.erase(lyricsName.begin());
-
-                app->setLyrics(lyricsName);
-            }
             else
                 throw "";
         }
