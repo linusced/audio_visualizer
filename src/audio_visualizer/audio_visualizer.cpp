@@ -149,7 +149,7 @@ void audio_visualizer::App::setLyrics(std::string lyricsName)
     {
         activeLyricsName = lyricsName;
         activeLyrics = &it->second;
-        activeLyricsIndex = -1;
+        activeLyricsIndex = 0;
         activeLyricsStartTime = window->getCurrentTime();
     }
     else
@@ -167,7 +167,7 @@ void audio_visualizer::App::setLyricsTime(double time)
         for (int i = 0; i < activeLyrics->size(); i++)
             if (activeLyrics->at(i).time > time)
             {
-                activeLyricsIndex = i - 1;
+                activeLyricsIndex = i;
                 break;
             }
     }

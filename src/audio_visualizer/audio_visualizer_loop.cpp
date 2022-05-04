@@ -129,10 +129,10 @@ void audio_visualizer::App::loop()
         else if (!activeLyricsName.empty())
         {
             double lyricsTime = window->getCurrentTime() - activeLyricsStartTime;
-            if (activeLyricsIndex < activeLyrics->size() && activeLyrics->at(activeLyricsIndex + 1).time < lyricsTime)
+            if (activeLyricsIndex < activeLyrics->size() && activeLyrics->at(activeLyricsIndex).time < lyricsTime)
             {
-                activeLyricsIndex++;
                 textElements[0]->setText(activeLyrics->at(activeLyricsIndex).str);
+                activeLyricsIndex++;
             }
         }
 

@@ -73,7 +73,7 @@ namespace audio_visualizer
         std::vector<Lyrics> *activeLyrics = nullptr;
         std::string activeLyricsName;
         double activeLyricsStartTime = 0.0;
-        int activeLyricsIndex = -1;
+        int activeLyricsIndex = 0;
 
         void loadLyrics(std::vector<std::string> &lyricsFilePaths);
     };
