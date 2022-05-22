@@ -22,6 +22,7 @@ namespace audio_visualizer
         void setMultiplier(float multiplier);
         void setImage(int imageIndex);
         void setTimer(double time);
+        void setGradientMultiplier(float gradientMultiplier);
 
     private:
         static const double COLOR_TRANSITION_DURATION, IMAGE_TRANSITION_DURATION;
@@ -48,6 +49,9 @@ namespace audio_visualizer
 
         double timerStart = 0.0, timerDuration = 0.0;
         int timerPrevSeconds = -1;
+
+        float gradientMultiplier = 0.5f;
+        bool updateGradient = false;
     };
 }
 

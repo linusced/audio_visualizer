@@ -32,8 +32,8 @@ audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFile
     waveformTextureHeight = 2160 * 0.3f;
     waveformTextureBytes.resize((waveformTextureWidth * waveformTextureHeight) * 4);
 
-    waveformBgGradientTextureBytes.reserve(waveformTextureBytes.size());
-    drawGradient(waveformBgGradientTextureBytes, waveformTextureWidth, waveformTextureHeight);
+    waveformBgGradientTextureBytes.resize(waveformTextureBytes.size());
+    drawGradient(waveformBgGradientTextureBytes, waveformTextureWidth, waveformTextureHeight, gradientMultiplier);
 
     std::cout << "waveformTextureWidth: " << waveformTextureWidth << " waveformTextureHeight: " << waveformTextureHeight << '\n';
 
@@ -124,6 +124,12 @@ void audio_visualizer::App::setTimer(double time)
 
     logData();
 }
+void audio_visualizer::App::setGradientMultiplier(float gradientMultiplier)
+{
+    this->gradientMultiplier = gradientMultiplier;
+    updateGradient = true;
+    logData();
+}
 
 void audio_visualizer::App::logData()
 {
@@ -132,5 +138,6 @@ void audio_visualizer::App::logData()
               << "Multiplier = " << input->getMultiplier() << '\n'
               << "Image = " << imageIndex + 1 << '\n'
               << "Timer = " << timerDuration << '\n'
+              << "Gradient Multiplier = " << gradientMultiplier << '\n'
               << "\033[1;34m--------\033[0m\n";
 }

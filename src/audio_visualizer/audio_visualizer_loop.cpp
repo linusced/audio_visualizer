@@ -84,6 +84,13 @@ void audio_visualizer::App::loop()
             }
         }
 
+        if (updateGradient)
+        {
+            drawGradient(waveformBgGradientTextureBytes, waveformTextureWidth, waveformTextureHeight, gradientMultiplier);
+            textures[textures.size() - 2]->update(waveformBgGradientTextureBytes.data(), waveformTextureWidth, waveformTextureHeight, GL_RGBA);
+            updateGradient = false;
+        }
+
         guiRenderer->update();
 
         glClear(GL_COLOR_BUFFER_BIT);

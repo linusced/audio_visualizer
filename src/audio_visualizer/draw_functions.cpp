@@ -38,7 +38,7 @@ void audio_visualizer::drawWaveform(std::vector<unsigned char> &textureBytes, in
     }
 }
 
-void audio_visualizer::drawGradient(std::vector<unsigned char> &textureBytes, int textureWidth, int textureHeight)
+void audio_visualizer::drawGradient(std::vector<unsigned char> &textureBytes, int textureWidth, int textureHeight, float multiplier)
 {
     auto drawPixel = [&](int x, int y, float alpha)
     {
@@ -49,8 +49,7 @@ void audio_visualizer::drawGradient(std::vector<unsigned char> &textureBytes, in
     };
 
     float alpha,
-        gradientHeight = textureHeight / 3.0f, topGradientStart = textureHeight - gradientHeight,
-        multiplier = 0.5f;
+        gradientHeight = textureHeight / 3.0f, topGradientStart = textureHeight - gradientHeight;
 
     for (int y = 0; y < textureHeight; y++)
         for (int x = 0; x < textureWidth; x++)

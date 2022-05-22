@@ -70,6 +70,15 @@ void consoleInputThreadFunc(bool *stop, audio_visualizer::App *app)
                     app->setTimer(dTime);
                 }
             }
+            else if (consoleInput.substr(0, 2) == "gm")
+            {
+                std::string gradientMultiplier = consoleInput.substr(1);
+                if ((gradientMultiplier[0] < '0' || gradientMultiplier[0] > '9') && gradientMultiplier[0] != '.')
+                    gradientMultiplier.erase(gradientMultiplier.begin());
+
+                float fGradientMultiplier = std::stof(gradientMultiplier);
+                app->setGradientMultiplier(fGradientMultiplier);
+            }
             else
                 throw "";
         }
