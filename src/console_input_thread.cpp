@@ -70,19 +70,6 @@ void consoleInputThreadFunc(bool *stop, audio_visualizer::App *app)
                     app->setTimer(dTime);
                 }
             }
-            else if (consoleInput[0] == 't')
-            {
-                app->setText(consoleInput.substr(1));
-            }
-            else if (consoleInput[0] == 'b')
-            {
-                std::string intensity = consoleInput.substr(1);
-                if ((intensity[0] < '0' || intensity[0] > '9') && intensity[0] != '.')
-                    intensity.erase(intensity.begin());
-
-                float fIntensity = std::stof(intensity);
-                app->setBeatIntensity(fIntensity);
-            }
             else
                 throw "";
         }

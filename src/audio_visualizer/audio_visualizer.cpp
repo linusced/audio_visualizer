@@ -32,8 +32,12 @@ audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFile
     waveformTextureHeight = 2160 * 0.3f;
     waveformTextureBytes.resize((waveformTextureWidth * waveformTextureHeight) * 4);
 
+    waveformBgGradientTextureBytes.reserve(waveformTextureBytes.size());
+    drawGradient(waveformBgGradientTextureBytes, waveformTextureWidth, waveformTextureHeight);
+
     std::cout << "waveformTextureWidth: " << waveformTextureWidth << " waveformTextureHeight: " << waveformTextureHeight << '\n';
 
+    textures.push_back(new opengl_gui::Texture(waveformBgGradientTextureBytes.data(), waveformTextureWidth, waveformTextureHeight, GL_RGBA));
     textures.push_back(new opengl_gui::Texture(waveformTextureBytes.data(), waveformTextureWidth, waveformTextureHeight, GL_RGBA));
 
     guiRenderer = new opengl_gui::Renderer(cssCode, window);
@@ -47,13 +51,11 @@ audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFile
     bgOverlayColor = &elements[0]->elementStyle.colorProperties["background-color"];
     bgOverlayColor->isSet = true;
 
-    imageElements.push_back(new opengl_gui::ImageElement(textures.back(), "waveform"));
+    imageElements.push_back(new opengl_gui::ImageElement(textures[textures.size() - 2], "waveform"));
+    imageElements.push_back(new opengl_gui::ImageElement(textures[textures.size() - 1], "waveform"));
+
     guiRenderer->addElement(imageElements[1]);
-
-    frequencyComplex = (fftw_complex *)calloc(input->BUFFER_SIZE / 2 + 1, sizeof(fftw_complex));
-    frequencyDomain.resize(input->BUFFER_SIZE / 4);
-
-    audioPeakFrequencySize = ceil((150.0 / (double)(input->SAMPLE_RATE / 2)) * frequencyDomain.size());
+    guiRenderer->addElement(imageElements[2]);
 
     fonts.push_back(new opengl_gui::Font(fontFilePath));
     textElements.push_back(new opengl_gui::TextElement(fonts[0], "", "text", false));
@@ -62,14 +64,10 @@ audio_visualizer::App::App(bool *stop, std::string cssCode, std::string fontFile
     textColor = &textElements[0]->elementStyle.colorProperties["color"];
     textColor->isSet = true;
     textColor->value = glm::vec4(1.0f);
-
-    beatIntensity = 0.2f;
 }
 
 void audio_visualizer::App::terminate()
 {
-    fftw_free(frequencyComplex);
-
     delete input;
 
     if (guiRenderer)
@@ -122,19 +120,8 @@ void audio_visualizer::App::setTimer(double time)
     timerDuration = abs(time);
 
     if (timerDuration == 0.0)
-        clearText = true;
+        textElements[0]->setText("");
 
-    logData();
-}
-void audio_visualizer::App::setText(std::string text)
-{
-    timerDuration = 0.0;
-    textElements[0]->setText(text);
-    logData();
-}
-void audio_visualizer::App::setBeatIntensity(float intensity)
-{
-    beatIntensity = intensity;
     logData();
 }
 
@@ -144,8 +131,6 @@ void audio_visualizer::App::logData()
               << "HSV = " << HSV[0] << ", " << HSV[1] << ", " << HSV[2] << '\n'
               << "Multiplier = " << input->getMultiplier() << '\n'
               << "Image = " << imageIndex + 1 << '\n'
-              << "Text = " << (timerDuration == 0.0 ? textElements[0]->getText() : "") << '\n'
               << "Timer = " << timerDuration << '\n'
-              << "Beat Intensity = " << beatIntensity << '\n'
               << "\033[1;34m--------\033[0m\n";
 }

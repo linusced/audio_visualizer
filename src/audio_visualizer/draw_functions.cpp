@@ -38,28 +38,30 @@ void audio_visualizer::drawWaveform(std::vector<unsigned char> &textureBytes, in
     }
 }
 
-void audio_visualizer::drawFrequencies(std::vector<unsigned char> &textureBytes, int textureWidth, int textureHeight, glm::vec3 color, const std::vector<double> &frequencyData)
+void audio_visualizer::drawGradient(std::vector<unsigned char> &textureBytes, int textureWidth, int textureHeight)
 {
-    for (size_t i = 3; i < textureBytes.size(); i += 4)
-        textureBytes[i] = 0;
-
-    auto fillRect = [&](int x, int y, int w, int h)
+    auto drawPixel = [&](int x, int y, float alpha)
     {
-        int x1 = x, y1 = y, x2 = x + w, y2 = y + h;
-        for (x = x1; x < x2; x++)
-            for (y = y1; y < y2; y++)
-            {
-                size_t i = (y * (size_t)textureWidth + x) * 4UL;
-                if (i + 4 < textureBytes.size())
-                {
-                    textureBytes[i] = color.r * 255;
-                    textureBytes[i + 1] = color.g * 255;
-                    textureBytes[i + 2] = color.b * 255;
-                    textureBytes[i + 3] = 255;
-                }
-            }
+        size_t i = (y * (size_t)textureWidth + x) * 4UL;
+
+        textureBytes[i] = textureBytes[i + 1] = textureBytes[i + 2] = 0;
+        textureBytes[i + 3] = alpha * 255;
     };
 
-    for (int x = 0; x < textureWidth; x++)
-        fillRect(x, 0, 1, (frequencyData[x] / 50.0) * textureHeight);
+    float alpha,
+        gradientHeight = textureHeight / 3.0f, topGradientStart = textureHeight - gradientHeight,
+        multiplier = 0.5f;
+
+    for (int y = 0; y < textureHeight; y++)
+        for (int x = 0; x < textureWidth; x++)
+        {
+            if (y < gradientHeight)
+                alpha = (y / gradientHeight) * multiplier;
+            else if (y > topGradientStart)
+                alpha = multiplier - ((y - topGradientStart) / gradientHeight) * multiplier;
+            else
+                alpha = multiplier;
+
+            drawPixel(x, y, alpha);
+        }
 }

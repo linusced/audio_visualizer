@@ -22,8 +22,6 @@ namespace audio_visualizer
         void setMultiplier(float multiplier);
         void setImage(int imageIndex);
         void setTimer(double time);
-        void setText(std::string text);
-        void setBeatIntensity(float intensity);
 
     private:
         static const double COLOR_TRANSITION_DURATION, IMAGE_TRANSITION_DURATION;
@@ -33,7 +31,7 @@ namespace audio_visualizer
         bool *stop = nullptr;
         AudioInput *input = nullptr;
 
-        std::vector<unsigned char> waveformTextureBytes;
+        std::vector<unsigned char> waveformTextureBytes, waveformBgGradientTextureBytes;
         int waveformTextureWidth, waveformTextureHeight;
 
         glm::vec3 HSV = glm::vec3(0.0f, 0.0f, 1.0f), prevHSV;
@@ -47,15 +45,6 @@ namespace audio_visualizer
         int imageIndex = 0;
         double imageTransitionStartTime = -100.0;
         bool isImageTransitionNewImageSet = false;
-
-        std::vector<double> frequencyDomain;
-        fftw_complex *frequencyComplex = nullptr;
-        fftw_plan frequencyPlan;
-        int audioPeakFrequencySize;
-
-        float beatIntensity;
-
-        bool clearText = false;
 
         double timerStart = 0.0, timerDuration = 0.0;
         int timerPrevSeconds = -1;

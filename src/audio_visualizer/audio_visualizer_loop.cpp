@@ -31,7 +31,7 @@ void audio_visualizer::App::loop()
         {
             if (imageTransitionCurrentTime < IMAGE_TRANSITION_DURATION / 2.0)
             {
-                bgOverlayColor->value.a = (imageTransitionCurrentTime / (IMAGE_TRANSITION_DURATION / 2.0)) * (1 - beatIntensity) + beatIntensity;
+                bgOverlayColor->value.a = (imageTransitionCurrentTime / (IMAGE_TRANSITION_DURATION / 2.0));
             }
             else
             {
@@ -40,58 +40,15 @@ void audio_visualizer::App::loop()
                     imageElements[0]->setImage(textures[imageIndex]);
                     isImageTransitionNewImageSet = true;
                 }
-                bgOverlayColor->value.a = 1.0 - ((imageTransitionCurrentTime - (IMAGE_TRANSITION_DURATION / 2.0)) / (IMAGE_TRANSITION_DURATION / 2.0)) * (1 - beatIntensity);
+                bgOverlayColor->value.a = 1.0 - ((imageTransitionCurrentTime - (IMAGE_TRANSITION_DURATION / 2.0)) / (IMAGE_TRANSITION_DURATION / 2.0));
             }
+            elements[0]->styleChange = true;
         }
-        else
-        {
-            double audioPeak = 0.0;
-            frequencyPlan = fftw_plan_dft_r2c_1d(input->BUFFER_SIZE, input->bufferData.data(), frequencyComplex, FFTW_ESTIMATE);
-            fftw_execute(frequencyPlan);
-
-            for (size_t i = 0; i < frequencyDomain.size(); i++)
-                frequencyDomain[i] = 20.0 * log10(sqrt(pow(frequencyComplex[i + 1][0], 2) + pow(frequencyComplex[i + 1][1], 2)));
-
-            fftw_destroy_plan(frequencyPlan);
-
-            for (int i = 0; i < audioPeakFrequencySize; i++)
-                if (frequencyDomain[i] > audioPeak)
-                    audioPeak = frequencyDomain[i];
-
-            audioPeak /= 50.0;
-
-            double prevAudioPeakAverage = 0.0;
-            for (int i = 0; i < prevAudioPeak.size(); i++)
-                prevAudioPeakAverage += prevAudioPeak[i];
-
-            prevAudioPeakAverage /= prevAudioPeak.size();
-
-            double audioPeakOutput = (audioPeak - prevAudioPeakAverage) / (1.0 - prevAudioPeakAverage);
-            if (audioPeakOutput > 1.0)
-                audioPeakOutput = 1.0;
-            else if (audioPeakOutput < 0.0)
-                audioPeakOutput = 0.0;
-
-            if (audioPeakOutput - prevAudioPeakOutput < -0.03)
-                audioPeakOutput = prevAudioPeakOutput - 0.03;
-
-            bgOverlayColor->value.a = (1.0 - audioPeakOutput * beatIntensity) - (1 - beatIntensity);
-
-            prevAudioPeak.erase(prevAudioPeak.begin());
-            prevAudioPeak.push_back(audioPeak);
-        }
-
-        elements[0]->styleChange = true;
 
         textColor->value = glm::vec4(color, 1.0f);
         textElements[0]->styleChange = true;
 
-        if (clearText)
-        {
-            textElements[0]->setText("");
-            clearText = false;
-        }
-        else if (timerDuration != 0.0)
+        if (timerDuration != 0.0)
         {
             double timerCurrentTime = window->getCurrentTime() - timerStart;
             if (timerCurrentTime < timerDuration)

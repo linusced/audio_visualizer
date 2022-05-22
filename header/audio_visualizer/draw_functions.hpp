@@ -10,7 +10,7 @@ namespace audio_visualizer
 {
     void drawWaveform(std::vector<unsigned char> &textureBytes, int textureWidth, int textureHeight, glm::vec3 color, const std::vector<double> &audioData);
 
-    void drawFrequencies(std::vector<unsigned char> &textureBytes, int textureWidth, int textureHeight, glm::vec3 color, const std::vector<double> &frequencyData);
+    void drawGradient(std::vector<unsigned char> &textureBytes, int textureWidth, int textureHeight);
 }
 
 #endif
